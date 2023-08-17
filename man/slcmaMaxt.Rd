@@ -13,9 +13,6 @@ slcmaMaxt(slcma, alpha = 0.05, do.CI = TRUE, seed = 12345, ...)
 
 \item{seed}{(Default: 12345)}
 }
-\value{
-
-}
 \description{
 Function for max-|t| test and associated confidence intervals
 }

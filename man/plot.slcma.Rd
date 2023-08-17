@@ -4,7 +4,7 @@
 \alias{plot.slcma}
 \title{SLCMA elbow plot}
 \usage{
-plot.slcma(
+\method{plot}{slcma}(
   slcma,
   relax = FALSE,
   show.remove = FALSE,

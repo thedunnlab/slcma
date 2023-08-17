@@ -16,9 +16,6 @@ slcmaInfer(
 \arguments{
 \item{...}{Additional arguments to `slcmaFLI()`.}
 }
-\value{
-
-}
 \description{
 Performs stage 2 of the SLCMA for user-specified methods
 }

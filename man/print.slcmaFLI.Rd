@@ -9,9 +9,6 @@
 \arguments{
 \item{tailarea}{(Default: TRUE)}
 }
-\value{
-
-}
 \description{
 Print method for class "slcmaFLI" (adapted from 'selectiveinference' package).
 }

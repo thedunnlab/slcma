@@ -6,9 +6,6 @@
 \usage{
 slcmaFLI(slcma, step, alpha = 0.05, ...)
 }
-\value{
-
-}
 \description{
 Short description of slcmaFLI.
 }
