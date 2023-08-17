@@ -7,4 +7,4 @@ library(remotes)
 remotes::install_github("thedunnlab/slcma")
 ```
 
-See our [blob/main/doc/slcma.md](tutorial) for examples.
+See the [vignette](blob/main/doc/slcma.md) for examples.
