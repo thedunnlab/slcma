@@ -1,6 +1,6 @@
 # slcma
 
-`slcma` is an R package implementing the structured life course modeling approach (SLCMA), 
+`slcma` is an R package that implements the structured life course modeling approach (SLCMA), 
 an analytic method that formally compares a set of prespecified life course hypotheses to identify the one that best fits the data. 
 
 To read more about the SLCMA: 
