@@ -1,0 +1,440 @@
+---
+title: "Examples demonstrating slcma R functions v0.5.R"
+author: Andrew Smith
+date: 15 December 2022
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Examples demonstrating slcma R functions v0.5.R}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputnc}
+---
+
+## Getting started
+
+Load the library.
+
+
+```r
+library(slcma)
+```
+
+```
+## Error in library(slcma): there is no package called 'slcma'
+```
+
+## Example 1. SLCMA
+
+Generate some data that matches that seen in Mishra et al (2009).
+This is the code I supplied in my 2015 Epidemiology paper.
+
+
+```r
+N <- c(141,20,88,80,40,35,317,367)
+BMI <- c(28.7,27.5,29.1,27.8,28.3,27.1,27.6,26.0)
+SE <- c(0.5,1.1,0.7,0.7,0.8,0.9,0.3,0.2)
+S1 <- c(0,1,0,0,1,1,0,1)
+S2 <- c(0,0,1,0,1,0,1,1)
+S3 <- c(0,0,0,1,0,1,1,1)
+x1 <- rep(S1,N)
+x2 <- rep(S2,N)
+x3 <- rep(S3,N)
+epsilon <- rnorm(sum(N))
+e <- lm(epsilon ~ x1 * x2 * x3)$residuals
+y <- rep(BMI,N) + rep(SE*sqrt(N),N) * e/sd(e)
+```
+
+As in my 2015 Epidemiology paper, perform SLCMA with 3 critical periods (early, middle, late)
+
+* Accumulation
+
+* Early-middle mobility (up and down)
+
+* Middle-late mobility (up and down)
+
+## LARS (stage 1)
+
+
+```r
+myslcma <-
+  slcma(y ~ x1 + x2 + x3 + Accumulation(x1,x2,x3) + Mobility(x1,x2) + Mobility(x2,x3))
+```
+
+```
+## Error in slcma(y ~ x1 + x2 + x3 + Accumulation(x1, x2, x3) + Mobility(x1, : could not find function "slcma"
+```
+
+Get a summary of the SLMCA, to see what variables are added at which stage.
+This is more meaningful that the usual output of lars.
+
+
+```r
+summary(myslcma)
+```
+
+```
+## Error in summary(myslcma): object 'myslcma' not found
+```
+
+## Elbow plots
+
+Default plot
+
+```r
+plot(myslcma)
+```
+
+```
+## Error in plot(myslcma): object 'myslcma' not found
+```
+
+For diagnostic purposes, 
+can also show the part of the elbow plot after variables get removed and others added in.
+
+
+```r
+plot(myslcma, show.remove=TRUE, show.labels=FALSE)
+```
+
+```
+## Error in plot(myslcma, show.remove = TRUE, show.labels = FALSE): object 'myslcma' not found
+```
+
+Sometimes it is more helpful to show
+an alternative elbow plot with the R2 from the relaxed lasso.
+
+
+```r
+plot(myslcma, relax=TRUE)
+```
+
+```
+## Error in plot(myslcma, relax = TRUE): object 'myslcma' not found
+```
+
+Can add your own labels to the elbow plot
+
+```r
+plot(myslcma, labels = c("Early critical period","Middle critical period","Late critical period",
+                         "Accumulation","Early-middle mobility (up)","Early-middle mobility (down)",
+                         "Middle-late mobility (up)", "Middle-late mobility (down)"))
+```
+
+```
+## Error in plot(myslcma, labels = c("Early critical period", "Middle critical period", : object 'myslcma' not found
+```
+
+Or if you can't remember all the variable names,
+and just want to label the ones that appear on the plot.
+
+```r
+plot(myslcma, labels = c("Accumulation","Early critical period","Middle-late mobility (down)",
+                         "Late critical period", "Early-middle mobility (up)"), selection.order=TRUE)
+```
+
+```
+## Error in plot(myslcma, labels = c("Accumulation", "Early critical period", : object 'myslcma' not found
+```
+
+The function provides a sanity check so you can compare the default labels with the user-defined labels.
+
+## Inference (stage 2)
+
+Maybe there is an elbow at Step 3, perform selective inference by default
+
+```r
+slcmaInfer(myslcma, 3)
+```
+
+```
+## Error in slcmaInfer(myslcma, 3): could not find function "slcmaInfer"
+```
+
+We have the option to report the results of the relaxed lasso instead
+
+```r
+slcmaInfer(myslcma, 3, method="relax")
+```
+
+```
+## Error in slcmaInfer(myslcma, 3, method = "relax"): could not find function "slcmaInfer"
+```
+
+We have the option of trying the max-|t| test, but only at Step 1.
+
+
+```r
+slcmaInfer(myslcma, 1, method="maxt")
+```
+
+```
+## Error in slcmaInfer(myslcma, 1, method = "maxt"): could not find function "slcmaInfer"
+```
+
+We can also get confidence intervals from the max-|t| test, 
+but these are time-consuming so they are not produced by default
+
+```r
+slcmaInfer(myslcma, 1, method="maxt", do.maxtCI=TRUE)
+```
+
+```
+## Error in slcmaInfer(myslcma, 1, method = "maxt", do.maxtCI = TRUE): could not find function "slcmaInfer"
+```
+
+We have the option of Bayesian inference,
+to find the posterior probability of the first-selected variable being the most important
+
+```r
+slcmaInfer(myslcma, 1, method="Bayes")
+```
+
+```
+## Error in slcmaInfer(myslcma, 1, method = "Bayes"): could not find function "slcmaInfer"
+```
+
+It is possible to produce results for all inference methods
+
+```r
+slcmaInfer(myslcma, 1, method=c("selectiveInference","relax","maxt","Bayes"))
+```
+
+```
+## Error in slcmaInfer(myslcma, 1, method = c("selectiveInference", "relax", : could not find function "slcmaInfer"
+```
+
+## Example 2. Adjusting for covariates
+
+Generate some data
+(this is the code I supplied in my 2015 IJE paper).
+
+```r
+n <- 400
+set.seed(1234)
+covariate <- rnorm(n)
+x1 <- covariate + rnorm(n)
+x2 <- x1 + rnorm(n)
+x3 <- x2 + 2*rnorm(n)
+y <- 2*covariate + x3 + 3*rnorm(n)
+```
+
+
+## Adjust for covariates (stage 1)
+
+
+Add any covariates into the formula,
+then use the option adjust = a numeric vector containing the position(s) of covariate(s) in the formula.
+Here there is one covariate (called 'covariate') and it is in the 8th position after the ~.
+Hence adjust=8.
+
+
+```r
+slcmaAdjust <-
+  slcma(y ~ x1 + x2 + x3 + Accumulation(x1,x2,x3) + Change(x1,x2) + Change(x2,x3) + Change(x1,x3) + covariate,
+        adjust=8)
+```
+
+```
+## Error in slcma(y ~ x1 + x2 + x3 + Accumulation(x1, x2, x3) + Change(x1, : could not find function "slcma"
+```
+
+The function provides a sanity check so you can check the variables have the desired roles
+
+You can revisit the sanity check
+
+```r
+slcmaAdjust$sanity
+```
+
+```
+## Error in eval(expr, envir, enclos): object 'slcmaAdjust' not found
+```
+
+Can summarize and produce plots as before
+
+```r
+summary(slcmaAdjust) 
+```
+
+```
+## Error in summary(slcmaAdjust): object 'slcmaAdjust' not found
+```
+
+```r
+plot(slcmaAdjust)
+```
+
+```
+## Error in plot(slcmaAdjust): object 'slcmaAdjust' not found
+```
+
+Can perform inference (stage 2) as before
+
+```r
+slcmaInfer(slcmaAdjust,1, method=c("selectiveInference","relax","maxt","Bayes"))
+```
+
+```
+## Error in slcmaInfer(slcmaAdjust, 1, method = c("selectiveInference", "relax", : could not find function "slcmaInfer"
+```
+
+## Example 3. Covariates and missing values
+
+Some simulated data with missing values
+(this is the code I supplied to The Dunn Lab in 2016)
+
+
+```r
+set.seed(123)
+covariate <- rnorm(250)
+x1 <- covariate + rnorm(250)
+x2 <- x1 + 2*rnorm(250)
+x3 <- x2 + 2*rnorm(250)
+y <- 2*covariate + 2*(x3-x1) + 5*rnorm(250)
+covariate[sample(1:250, size=10)] <- NA
+x1[sample(1:250, size=10)] <- NA
+x2[sample(1:250, size=10)] <- NA
+x3[sample(1:250, size=10)] <- NA
+y[sample(1:250, size=10)] <- NA
+incompleteData <- data.frame(covariate,x1,x2,x3,y)
+```
+
+Complete case analysis
+
+```r
+CCslcma <- slcma(y ~ x1 + x2 + x3 + Accumulation(x1,x2,x3) + 
+                 Change(x1,x3) + Ever(x1,x2,x3) + covariate, incompleteData, adjust=7)
+```
+
+```
+## Error in slcma(y ~ x1 + x2 + x3 + Accumulation(x1, x2, x3) + Change(x1, : could not find function "slcma"
+```
+
+Impute missing values (5 imputated datasets to save time)
+
+```r
+imputedData <- mice(incompleteData, m=5, maxit=20, seed=321)
+```
+
+```
+## Error in mice(incompleteData, m = 5, maxit = 20, seed = 321): could not find function "mice"
+```
+
+Apply LARS to data with same covariance structure as pooled data across imputations 
+ (data created via Cholesky decomposition)
+ 
+
+```r
+MIslcma <- slcma(y ~ x1 + x2 + x3 + Accumulation(x1,x2,x3) + 
+                 Change(x1,x3) + Ever(x1,x2,x3) + covariate, data=imputedData, adjust=7)
+```
+
+```
+## Error in slcma(y ~ x1 + x2 + x3 + Accumulation(x1, x2, x3) + Change(x1, : could not find function "slcma"
+```
+
+
+Can summarize and produce plots as before
+
+```r
+summary(MIslcma) 
+```
+
+```
+## Error in summary(MIslcma): object 'MIslcma' not found
+```
+
+```r
+plot(MIslcma)
+```
+
+```
+## Error in plot(MIslcma): object 'MIslcma' not found
+```
+
+Can perform inference (stage 2) as before
+
+```r
+slcmaInfer(MIslcma,1, method=c("selectiveInference","relax","maxt","Bayes"))
+```
+
+```
+## Error in slcmaInfer(MIslcma, 1, method = c("selectiveInference", "relax", : could not find function "slcmaInfer"
+```
+
+Can recreate the dummy dataset used within the above SLCMA
+
+```r
+myMIdata <- MI2dummy(y ~ x1 + x2 + x3 + Accumulation(x1,x2,x3) + 
+                     Change(x1,x3) + Ever(x1,x2,x3) + covariate, imputedData)
+```
+
+```
+## Error in MI2dummy(y ~ x1 + x2 + x3 + Accumulation(x1, x2, x3) + Change(x1, : could not find function "MI2dummy"
+```
+
+Note how sums, sums of squares and cross products are the same for `Accumulation(x1,x2,x3)` and `x1+x2+x3`.
+
+
+```r
+sum(myMIdata$`Accumulation(x1, x2, x3)`)
+```
+
+```
+## Error in eval(expr, envir, enclos): object 'myMIdata' not found
+```
+
+```r
+sum(myMIdata$x1+myMIdata$x2+myMIdata$x3)
+```
+
+```
+## Error in eval(expr, envir, enclos): object 'myMIdata' not found
+```
+
+```r
+sum(myMIdata$`Accumulation(x1, x2, x3)`^2)
+```
+
+```
+## Error in eval(expr, envir, enclos): object 'myMIdata' not found
+```
+
+```r
+sum((myMIdata$x1+myMIdata$x2+myMIdata$x3)^2)
+```
+
+```
+## Error in eval(expr, envir, enclos): object 'myMIdata' not found
+```
+
+```r
+sum(myMIdata$x1 * myMIdata$`Accumulation(x1, x2, x3)`)
+```
+
+```
+## Error in eval(expr, envir, enclos): object 'myMIdata' not found
+```
+
+```r
+sum(myMIdata$x1 * (myMIdata$x1+myMIdata$x2+myMIdata$x3))
+```
+
+```
+## Error in eval(expr, envir, enclos): object 'myMIdata' not found
+```
+
+```r
+sum(myMIdata$y * myMIdata$`Accumulation(x1, x2, x3)`)
+```
+
+```
+## Error in eval(expr, envir, enclos): object 'myMIdata' not found
+```
+
+```r
+sum(myMIdata$y * (myMIdata$x1+myMIdata$x2+myMIdata$x3))
+```
+
+```
+## Error in eval(expr, envir, enclos): object 'myMIdata' not found
+```
