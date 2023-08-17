@@ -1,0 +1,17 @@
+Package: slcma
+Version: 0.5-0
+Date: 2023-01-19
+Title: Structured Approach to Evaluating Life-Course Hypotheses (SLCMA)
+Authors@R: c(person("Andrew", "Smith", role = c("aut", "cre"),
+                     email = "andrew18.smith@uwe.ac.uk"))
+Author: Andrew Smith [aut, cre]
+Maintainer: Andrew Smith <andrew18.smith@uwe.ac.uk>
+Depends: R (>= 3.1.0), lars, selectiveInference, mice, mvtnorm
+Suggests: knitr, rmarkdown
+VignetteBuilder: knitr
+Description: An implementation of the 
+  Structured Approach to Evaluating Life-Course Hypotheses method.
+License: MIT License
+URL: https://www.r-project.org
+BugReports: 
+RoxygenNote: 7.1.2
