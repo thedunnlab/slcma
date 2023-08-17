@@ -10,6 +10,7 @@ devtools::document("slcma")
 
 devtools::build_vignettes("slcma", clean=FALSE, install=TRUE, keep_md=TRUE)
 
+## for some reason build_vignettes() does not keep the markdown output file
 library(knitr)
 setwd("slcma/doc")
-knit("slcm.Rmd")
+knit("slcma.Rmd")
