@@ -1,7 +1,7 @@
 #### Draft slcma R package
-#### Version 0.5
+#### Version 0.7
 #### Andrew Smith
-#### 15 December 2022
+#### 21 September 2023
 
 
 #' Accumulation hypothesis
@@ -108,13 +108,10 @@ Ever <- function(...) {
 #' Creates a dummy dataset with the same samples means
 #' and sample covariances as that estimated from pooled imputed datasets.
 #'
-#' @param formula An object of class `formula` which specifies the
-#' SLCMA model including outcome variable, exposures
-#' and lifecourse hypotheses.
-#' @param data An optional data frame, list or environment
-#' containing the variables in the model. If not found in `data`,
-#' the variables are taken from `environment(formula)`, typically
-#' the environment form which the function is called.
+#' @param formula An object of class `formula` that specifies all terms
+#' to be included in the dataset.
+#' @param data An object of class `mids' containing the variables  optional data frame, list or environment
+#' specified in `formula'.
 #' @param seed Integer input to `set.seed` to ensure that
 #' dataset generation is reproducible (Default: 1).
 #' @return Data frame of class `MI2dummy` including randomly
@@ -185,9 +182,9 @@ MI2dummy <- function(formula, data, seed=1) {
 
 }
 
-#' Structured Approach to Evaluating Life-Course Hypotheses: stage 1
+#' Structured Life Course Modelling Approach: stage 1
 #'
-#' Performs stage 1 of the SLCMA
+#' Performs stage 1 (variable selection) of the SLCMA
 #'
 #' @param formula An object of class `formula` which specifies the
 #' SLCMA model including outcome variable, exposures
@@ -196,19 +193,25 @@ MI2dummy <- function(formula, data, seed=1) {
 #' containing the variables in the model. If not found in `data`,
 #' the variables are taken from `environment(formula)`, typically
 #' the environment form which the function is called.
-#' @param adjust MISSING
-#' @param ... Additional arguments to be passed to `MI2dummy`.
-#' @return An object of class `"sclma"` which inherits from
-#' the `"lars"` class containing output from the least angle regression
-#' analysis as well as the following items:
-#' * `X` Numeric matrix with columns corresponding to SLCMA hypotheses.
-#' * `y` Output variable.
-#' * `ncov`
-#' * `multiple`
-#' * `sanity`
+#' @param adjust A numerical vector containing the position of terms to
+#' be adjusted for in all models. (Default: NULL - no adjustment).
+#' @param seed Integer input to `set.seed` to ensure that dataset 
+#' generation, if `data' contains multiple imputations, is reproducible (Default: 1).
+#' @param silent Logical. The function does not print any output when TRUE (Default: FALSE).
+#' @param ... Additional arguments to be passed to `lars`.
+#' @return An object containing output the following items:
+#' * `X_hypos` Numeric matrix with columns corresponding to SLCMA hypotheses.
+#' * `y_resid` Output variable, adjusted for terms specified in `adjust`.
+#' * `multiple` Output from multiple regression of all terms.
+#' * `sanity` Data frame containing details of all terms specified by `formula'
+#' and whether they are included in all models.
+#' * `fit' Output of `lars'.
+#' * `base.r.squared` R-squared for the base model containing only those terms
+#' specified in `adjust`.
+#' * `adjust.df` Degrees of freedom for the terms specified in `adjust`.
 #'  
 #' @export 
-slcma <- function(formula, data=environment(formula), adjust=NULL, ...) {
+slcma <- function(formula, data=environment(formula), adjust=NULL, seed=1, silent=FALSE, ...) {
 
   # Checks
   formula <- update(formula, . ~ . + 1)
@@ -227,7 +230,7 @@ slcma <- function(formula, data=environment(formula), adjust=NULL, ...) {
   }
 
   if("mids" %in% class(data)) {
-    dummy <- MI2dummy(formula, data, ...)
+    dummy <- MI2dummy(formula, data, seed=seed)
     y <- dummy[,attributes(dummy)$assign==-1]
     mm <- as.matrix(cbind(`(Intercept)`=rep(1,dim(dummy)[1]), dummy[,attributes(dummy)$assign!=-1]))
     assign <- c(0, attributes(dummy)$assign[attributes(dummy)$assign!=-1])
@@ -237,37 +240,41 @@ slcma <- function(formula, data=environment(formula), adjust=NULL, ...) {
     mm <- model.matrix(trms, data=data)
     r <- attributes(mm)$assign %in% c(0,adjust)
   }
-
-  covars  <- mm[, r, drop=FALSE]
-  X_hypos <- mm[,!r, drop=FALSE]
-
+  
   sanity <- data.frame(Term=colnames(mm),
                        Role=factor(r, levels=c(T,F), labels=c("Adjusted for in all models","Available for variable selection")))
 
-  ncov <- dim(covars)[2] - 1
-  y <- lm(y ~ covars)$residuals
-  X_hypos <- lm(X_hypos ~ covars)$residuals
-
-  full_model <- lm(y ~ X_hypos)
-  df1 <- dim(X_hypos)[1] - full_model$df.residual - 1
-  df2 <- full_model$df.residual - dim(covars)[2] + 1
+  covars  <- mm[, r, drop=FALSE]
+  X_hypos <- mm[,!r, drop=FALSE]
+  
+  adjust_model <- lm(y ~ covars)
+  y_resid <- adjust_model$residuals         # even if no covariates, this makes y_resid have mean zero
+  X_hypos <- lm(X_hypos ~ covars)$residuals # even if no covariates, this makes every column of X_hypos have mean zero
+  base.r.squared <- 1 - sum(y_resid^2)/sum((y-mean(y))^2)
+  adjust.df <- adjust_model$rank - 1 
+  
+  full_model <- lm(y_resid ~ X_hypos)
+  df1 <- full_model$rank - 1
+  df2 <- full_model$df.residual - adjust.df 
   RSS <- sum(full_model$residuals^2)
   sigma <- sqrt(RSS/df2)
-  r.squared <- 1 - RSS/sum(y^2)
+  r.squared <- 1 - RSS/sum(y_resid^2)
   fstatistic <- r.squared / (1-r.squared) * df2/df1
   p <- pf(fstatistic, df1, df2, lower.tail=FALSE)
-  multiple <- list(sigma = sigma, r.squared = r.squared, fstatistic = fstatistic, p = p)
+  multiple <- list(sigma = sigma, r.squared = r.squared, fstatistic = fstatistic, df1 = df1, df2 = df2, p = p)
 
-  output <- lars(X_hypos, y)
+  fit <- lars(X_hypos, y_resid, ...)
 
-  output$X <- X_hypos
-  output$y <- y
-  output$ncov <- ncov
-  output$multiple <- multiple
-  output$sanity <- sanity
+  output <- list(sanity=sanity,
+                 base.r.squared=base.r.squared,
+                 adjust.df=adjust.df,
+                 X_hypos=X_hypos,
+                 y_resid=y_resid,
+                 multiple=multiple,
+                 fit=fit)
   class(output) <- "slcma"
-  print(sanity, row.names=FALSE)
-  output
+  if(!silent) print(sanity, row.names=FALSE)
+  invisible(output)
 }
 
 #' SLCMA stage 1 output
@@ -289,20 +296,39 @@ print.slcma <- function(x) {
 #'
 #' @export
 summary.slcma <- function(x) {
-  unl <- unlist(x$actions)
+  unl <- unlist(x$fit$actions)
   varnames <- names(unl)
-  entries <- varnames
-  exits <- varnames
-  entries[unl < 0] <- ""
-  exits[unl > 0] <- ""
-  output <- data.frame(Step=seq(along=unl),
-                       `Variable selected`=entries, 
-                       `Variable removed`=exits,
-                       Variables=x$df[-1]-1, 
-                       R2=round(x$R2[-1],3), check.names=FALSE)
+  selected <- varnames
+  removed <- varnames
+  selected[unl < 0] <- ""
+  removed[unl > 0] <- ""
+  output <- x
+  output$step <- c(0,seq(along=unl))
+  output$selected <- c("",selected)
+  output$removed <- c("",removed)
+  output$vars <- x$fit$df - 1
+  class(output) <- "summary.slcma"
+  output
+}
+
+#' SLCMA summary output
+#'
+#' Print method for objects of class "summary.slcma".
+#'
+#' @param x Object of class "`summary.slcma`" from the `summary.slcma()` function.
+#'
+#' @export
+print.summary.slcma <- function(x) {
   cat("\nSummary of LARS procedure\n")
-  print(output, row.names=FALSE)
-  invisible(output)
+  summarytable <- data.frame(Step=x$step,
+                             `Variable selected`=x$selected,
+                             `Variable removed`=x$removed,
+                             Variables=x$vars, 
+                             `R-squared`=round(x$fit$R2, 3), check.names=FALSE)
+  if(x$adjust.df > 0) {
+    names(summarytable)[5] <- "Partial R-squared"
+  }
+  print(summarytable, row.names=FALSE)
 }
 
 #' SLCMA elbow plot
@@ -312,22 +338,22 @@ summary.slcma <- function(x) {
 #' @param x Object of class "`slcma`" from the `slcma()` function.
 #'
 #' @export
-plot.slcma <- function(slcma, relax=FALSE, show.remove=FALSE, show.labels=TRUE, labels=NULL, selection.order=FALSE,
-                       xlab="Variables selected", ylab="R-squared", ...) {
-  maxadd <- rle(slcma$actions>0)$lengths[1]
-  vars <- slcma$df - 1
-  R2 <- slcma$R2
-  unl <- unlist(slcma$actions)
+plot.slcma <- function(x, relax=FALSE, show.remove=FALSE, show.labels=TRUE, labels=NULL, selection.order=FALSE,
+                       xlab="Variables selected", ylab=ifelse(x$adjust.df>0,"Partial R-squared","R-squared"), ...) {
+  maxadd <- rle(x$fit$actions>0)$lengths[1]
+  vars <- x$fit$df - 1
+  R2 <- x$fit$R2
+  unl <- unlist(x$fit$actions)
 
   if(relax) {
     for(j in seq_along(unl)) {
-      selected <-   seq_len(dim(slcma$X)[2]) %in%  unl[1:j]
-      selected <- !(seq_len(dim(slcma$X)[2]) %in% -unl[1:j]) & selected
-      relaxed_model <- lm(slcma$y ~ slcma$X[,selected])
+      selected <-   seq_len(dim(x$X_hypos)[2]) %in%  unl[1:j]
+      selected <- !(seq_len(dim(x$X_hypos)[2]) %in% -unl[1:j]) & selected
+      relaxed_model <- lm(x$y_resid ~ x$X_hypos[,selected])
       R2[j+1] <- summary(relaxed_model)$r.sq
     }
   }
-  maxR2 <- slcma$multiple$r.sq
+  maxR2 <- x$multiple$r.sq
 
   labs <- attr(unl,"names")
   if(!is.null(labels)) {
@@ -338,12 +364,12 @@ plot.slcma <- function(slcma, relax=FALSE, show.remove=FALSE, show.labels=TRUE, 
       labs[seq_along(labels)] <- labels
       print(data.frame(Label=labs, Term=attr(unl,"names")), row.names=FALSE)
     } else {
-      if(length(labels) > dim(slcma$X)[2]) {
+      if(length(labels) > dim(x$X_hypos)[2]) {
         stop("'labels' is longer than the maximum number of variables")
       }
-      use.names <- colnames(slcma$X)
+      use.names <- colnames(x$X_hypos)
       use.names[seq_along(labels)] <- labels
-      print(data.frame(Label=use.names, Term=colnames(slcma$X)), row.names=FALSE)
+      print(data.frame(Label=use.names, Term=colnames(x$X_hypos)), row.names=FALSE)
       labs <- use.names[unl[1:maxadd]]
     }
   }
@@ -355,7 +381,7 @@ plot.slcma <- function(slcma, relax=FALSE, show.remove=FALSE, show.labels=TRUE, 
     labs <- labs[1:maxadd]
   }
 
-  plot(c(0,max(vars)), c(0,maxR2), type="n", xaxt="n",
+  plot(c(0,max(vars)), c(0,maxR2), type="n", xaxt="n", # change 0 to min(vars) and min(R2) (and below in text)
        xlab=xlab, ylab=ylab, ...)
   axis(1, at=vars)
   if(show.labels) {  
@@ -366,51 +392,57 @@ plot.slcma <- function(slcma, relax=FALSE, show.remove=FALSE, show.labels=TRUE, 
 }
 
 
-#' Structured Approach to Evaluating Life-Course Hypotheses: stage 1
+#' Structured Life Course Modelling Approach: stage 1
 #'
 #' Performs stage 2 of the SLCMA for user-specified methods
 #'
-#' @param slcma
-#' @param step
-#' @param method
-#' @param alpha
-#' @param do.maxtCI
-#' @param ... Additional arguments to `slcmaFLI()`.
+#' @param x Object of class "`slcma`" from the `slcma()` function.
+#' @param step Integer specifying which step of the LARS procedure produces 
+#' the model on which inference is to be performed.
+#' @param method Character string or vector containing the method or methods of inference
+#' to be performed. (Default: "slcmaFLI" - Fixed Lasso Inference).
+#' @param alpha Level of significance for confidence interval calculations. Confidence
+#' intervals will have (1 - `alpha`) * 100% coverage. (Default: 0.05 - 95% coverage).
+#' @param do.maxtCI Logical, indicating whether confidence intervals should be 
+#' calculated for the max-|t| test. (Default: FALSE).
+#' @param ... Additional arguments to `fixedLassoInf()` (see the `selectiveinference` package).
 #' @return
 #' 
 #' @export
-slcmaInfer <- function(slcma, step=1L, method="slcmaFLI", alpha=0.05, do.maxtCI=FALSE, ...) {
-  if(step<1 | abs(step-round(step)) > .Machine$double.eps^0.5) {
-    stop("'step' is not a positive integer")
+slcmaInfer <- function(x, step=1L, method="slcmaFLI", alpha=0.05, do.maxtCI=FALSE, ...) {
+  if(step<0 | abs(step-round(step)) > .Machine$double.eps^0.5) {
+    stop("'step' is not a non-negative integer")
   }
-  if(step > length(slcma$action)) {
-    stop("'step' is greater than the number of LARS steps in 'slcma'") 
+  if(step > length(x$fit$action)) {
+    stop("'step' is greater than the number of LARS steps") 
   }
 
-  nvars <- slcma$df[step+1] - 1
-  R2.lasso <- slcma$R2[step+1]
-  output <- list(step=step, nvars=nvars, R2.lasso=R2.lasso)
+  output <- x
+  output$inference <- list(step=step, vars=x$fit$df[step+1]-1, R2=x$fit$R2[step+1])
+  if(x$adjust.df > 0) {
+    output$inference$totalR2 <- x$base.r.squared + output$inference$R2 * (1 - x$base.r.squared)
+  }
 
   if(any(c("fixedLassoInf","selectiveInference","fli","slcmaFLI") %in% method)) {
-    fli <- slcmaFLI(slcma, step=step, alpha=alpha, ...)
+    fli <- slcmaFLI(x, step=step, alpha=alpha, ...)
     output$fli <- fli
   }
   if(any(c("maxt","slcmaMaxt") %in% method)) {
-    if(step > 1) {
+    if(step == 0 | step > 1) {
       stop("max-|t| test is only available at Step 1")
     }
-    maxt <- slcmaMaxt(slcma, alpha=alpha, do.CI=do.maxtCI)
+    maxt <- slcmaMaxt(x, alpha=alpha, do.CI=do.maxtCI)
     output$maxt <- maxt
   }
   if(any(c("relaxed","relax","slcmaRelax") %in% method)) {
-    relax <- slcmaRelax(slcma, step=step)
+    relax <- slcmaRelax(x, step=step)
     output$relax <- relax
   }
   if(any(c("Bayes","slcmaBayes") %in% method)) {
-    if(step > 1) {
+    if(step == 0 | step > 1) {
       stop("Bayesian posterior probabilities are only available at Step 1")
     }
-    Bayes <- slcmaBayes(slcma)
+    Bayes <- slcmaBayes(x)
     output$Bayes <- Bayes
   } 
 
@@ -426,9 +458,19 @@ slcmaInfer <- function(slcma, step=1L, method="slcmaFLI", alpha=0.05, do.maxtCI=
 #'
 #' @export
 print.slcmaInfer <- function(x) {
-  cat(sprintf("\nInference for model at Step %1.0f of LARS procedure\n",x$step))
-  cat(sprintf("\nNumber of selected variables: %1.0f\n", x$nvars))
-  cat(sprintf("Lasso R-squared: %.3f\n", x$R2.lasso))
+  adjust <- x$sanity[,2] == "Adjusted for in all models" & x$sanity[,1] != "(Intercept)"
+  adjust.list <- x$sanity[adjust,1]
+
+  cat(sprintf("\nInference for model at Step %1.0f of LARS procedure\n",x$inference$step))
+  cat(sprintf("\nNumber of selected variables: %1.0f\n", x$inference$vars))
+  if(x$adjust.df > 0) {
+    cat(sprintf("Partial R-squared from lasso fit: %.3f\n", x$inference$R2))
+    cat(sprintf("  Total R-squared from lasso fit: %.3f\n", x$inference$totalR2))
+    cat("Adjusted for:",paste(adjust.list, collapse=", "),"\n")
+  }
+  else {
+    cat(sprintf("R-squared from lasso fit: %.3f\n", x$inference$R2))
+  }
   if(!is.null(x$fli)) {
     cat("\nResults from fixed lasso inference (selective inference):\n")
     print(x$fli)
@@ -450,32 +492,37 @@ print.slcmaInfer <- function(x) {
 #'
 #' Short description of slcmaFLI.
 #'
-#' @param slcma
+#' @param x
 #' @param step
 #' @param alpha
 #' @param ...
 #' @return
 #'
 #' @export
-slcmaFLI <- function(slcma, step, alpha=0.05, ...) {
-  if(step<1 | abs(step-round(step)) > .Machine$double.eps^0.5) {
-    stop("'step' is not a positive integer")
+slcmaFLI <- function(x, step, alpha=0.05, ...) {
+  if(step<0 | abs(step-round(step)) > .Machine$double.eps^0.5) {
+    stop("'step' is not a non-negative integer")
   }
-  if(step > length(slcma$action)) {
-    stop("'step' is greater than the number of LARS steps in 'slcma'") 
+  if(step > length(x$fit$action)) {
+    stop("'step' is greater than the number of LARS steps") 
   }
-  if(step == length(slcma$action)) {
+  if(step == length(x$fit$action)) {
     stop("Fixed lasso inference and/or selective inference is not available at the final step of the LARS procedure")
   }
-  sumsq <- slcma$normx
-  X_normed <- scale(slcma$X, scale=sumsq)
-  fli <- fixedLassoInf(X_normed, slcma$y, 
-                       slcma$beta[step+1,], slcma$lambda[step+1], 
-                       type="partial", alpha=alpha, ...)
-  sumsq <- sumsq[fli$vars]
-  fli$coef0 <- fli$coef0 / sumsq
-  fli$sd <- fli$sd / sumsq
-  fli$ci <- fli$ci / cbind(sumsq,sumsq)
+  sumsq <- x$fit$normx
+  X_normed <- scale(x$X_hypos, scale=sumsq)
+  if(step == 0) {
+    fli <- list(lambda=x$fit$lambda[step+1])
+  }
+  else {
+    fli <- fixedLassoInf(X_normed, x$y_resid, 
+                         x$fit$beta[step+1,], x$fit$lambda[step+1], 
+                         type="partial", alpha=alpha, ...)
+    sumsq <- sumsq[fli$vars]
+    fli$coef0 <- fli$coef0 / sumsq
+    fli$sd <- fli$sd / sumsq
+    fli$ci <- fli$ci / cbind(sumsq,sumsq)
+  }
   class(fli) <- "slcmaFLI"
   fli
 }
@@ -492,21 +539,33 @@ slcmaFLI <- function(slcma, step, alpha=0.05, ...) {
 #' @export
 print.slcmaFLI <- function (x, tailarea = TRUE, ...) 
 {
-  cat(sprintf("\nStandard deviation of noise (specified or estimated) sigma = %0.3f\n", 
-              x$sigma))
-  cat(sprintf("\nTesting results at lambda = %0.3f, with alpha = %0.3f\n", 
-              x$lambda, x$alpha))
-  cat("", fill = T)
-  tab = cbind(round(x$coef0, 3), round(x$pv, 3), round(x$ci, 3))
-  colnames(tab) = c("Coef", "P-value", "CI.lo", 
-                    "CI.up")
-  rownames(tab) = attr(x$vars,"names")
-  if (tailarea) {
-    tab = cbind(tab, round(x$tailarea, 3))
-    colnames(tab)[(ncol(tab) - 1):ncol(tab)] = c("LoTailArea", 
-                                                 "UpTailArea")
+  if(!is.null(x$sigma)) {
+    cat(sprintf("\nStandard deviation of noise (specified or estimated) sigma = %0.3f\n", 
+                x$sigma))
   }
-  print(tab)
+  if(!is.null(x$alpha)) {
+    cat(sprintf("\nTesting results at lambda = %0.3f, with alpha = %0.3f\n", 
+                x$lambda, x$alpha))
+  }
+  else {
+    cat(sprintf("\nTesting results at lambda = %0.3f\n", x$lambda))
+  }
+  cat("", fill = T)
+  if(!is.null(x$coef0)) {
+    tab = cbind(round(x$coef0, 3), round(x$pv, 3), round(x$ci, 3))
+    colnames(tab) = c("Coef", "P-value", "CI.lo", 
+                      "CI.up")
+    rownames(tab) = attr(x$vars,"names")
+    if (tailarea) {
+      tab = cbind(tab, round(x$tailarea, 3))
+      colnames(tab)[(ncol(tab) - 1):ncol(tab)] = c("LoTailArea", 
+                                                   "UpTailArea")
+    }
+    print(tab)
+  }
+  else {
+    cat("No variables selected\n")
+  }
   invisible()
 }
 
@@ -514,29 +573,29 @@ print.slcmaFLI <- function (x, tailarea = TRUE, ...)
 #'
 #' Function for max-|t| test and associated confidence intervals
 #'
-#' @param slcma
+#' @param x
 #' @param alpha (Default: 0.05)
-#' @param do.CI (Default: TRUE)
+#' @param do.CI (Default: FALSE)
 #' @param seed (Default: 12345)
 #' @param ...
 #' @return
 #'
 #' @export
-slcmaMaxt <- function(slcma, alpha=0.05, do.CI=TRUE, seed=12345, ...) {
+slcmaMaxt <- function(x, alpha=0.05, do.CI=TRUE, seed=12345, ...) {
   # assumes that X and y have mean subtracted from them, which should have happened by default
-  y <- slcma$y
-  X_hypos <- slcma$X
-  n <- length(y)
+  y_resid <- x$y_resid
+  X_hypos <- x$X_hypos
+  n <- length(y_resid)
   p <- dim(X_hypos)[2]
-  d <- n-p-slcma$ncov-1
-  sumsq <- slcma$normx
+  d <- x$multiple$df2
+  sumsq <- x$fit$normx
   X_normed <- scale(X_hypos, scale=sumsq)
   Xt <- t(X_normed)
   XtX <- Xt %*% X_normed
-  Xty <- Xt %*% y
-  selection <- slcma$action[[1]]
+  Xty <- Xt %*% y_resid
+  selection <- x$fit$action[[1]]
   r <- Xty[selection]
-  s <- slcma$multiple$sigma
+  s <- x$multiple$sigma
   set.seed(seed)
   p.maxt <- 1 - pmvt(lower=-rep(abs(r),p),
                      upper= rep(abs(r),p),
@@ -617,26 +676,36 @@ P6 <- function(beta0, r, p, selection, s, XtX, df, ...) {
 
 
 # A function for simple confidence interval calculations
-slcmaRelax <- function(slcma, step, alpha=0.05) {
-  if(step<1 | abs(step-round(step)) > .Machine$double.eps^0.5) {
-    stop("'step' is not a positive integer")
+slcmaRelax <- function(x, step, alpha=0.05) {
+  if(step<0 | abs(step-round(step)) > .Machine$double.eps^0.5) {
+    stop("'step' is not a non-negative integer")
   }
-  if(step > length(slcma$action)) {
-    stop("'step' is greater than the number of LARS steps in 'slcma'") 
+  if(step > length(x$fit$action)) {
+    stop("'step' is greater than the number of LARS steps") 
   }
-  unl <- unlist(slcma$actions)
-  selected <-   seq_len(dim(slcma$X)[2]) %in%  unl[1:step]
-  selected <- !(seq_len(dim(slcma$X)[2]) %in% -unl[1:step]) & selected
-  relaxed_model <- lm(slcma$y ~ slcma$X[,selected])
+  unl <- unlist(x$fit$actions)
+  if(step == 0) {
+    selected <- 0
+    relaxed_model <- lm(x$y_resid ~ 1)
+  }
+  else {
+    selected <-   seq_len(dim(x$X_hypos)[2]) %in%  unl[1:step]
+    selected <- !(seq_len(dim(x$X_hypos)[2]) %in% -unl[1:step]) & selected
+    relaxed_model <- lm(x$y_resid ~ x$X_hypos[,selected])
+  }
   relaxed_summary <- summary(relaxed_model)
   coefs <- relaxed_summary$coefficients
-  SEs <- coefs[-1,2] * slcma$multiple$sigma / relaxed_summary$sigma
+  SEs <- coefs[-1,2] * x$multiple$sigma / relaxed_summary$sigma
   lower <- coefs[-1,1] - qnorm(1-alpha/2)*SEs
   upper <- coefs[-1,1] + qnorm(1-alpha/2)*SEs
   coefficients <- cbind(coefs[-1,1], SEs, lower, upper)
-  rownames(coefficients) <- colnames(slcma$X)[selected]
+  rownames(coefficients) <- colnames(x$X_hypos)[selected]
   colnames(coefficients) <- c("Coef", "SE", "CI.lo", "CI.up")
-  relax <- list(coefficients = coefficients, R2.relax = relaxed_summary$r.sq)
+  relax <- list(coefficients = coefficients, relaxR2 = relaxed_summary$r.sq)
+  if(x$adjust.df > 0) {
+    relax$totalR2 <- x$base.r.squared + relax$relaxR2 * (1 - x$base.r.squared)
+  }
+
   class(relax) <- "slcmaRelax"
   relax
 }
@@ -649,20 +718,31 @@ slcmaRelax <- function(slcma, step, alpha=0.05) {
 #'
 #' @export
 print.slcmaRelax <- function (x) {
-  cat(sprintf("\nRelaxed r-squared: %0.3f\n", x$R2.relax))
+  if(is.null(x$totalR2)) {
+    cat(sprintf("\nR-squared from relaxed lasso fit: %.3f\n", x$relaxR2))
+  }
+  else {
+    cat(sprintf("\nPartial R-squared from relaxed lasso fit: %.3f\n", x$relaxR2))
+    cat(sprintf("  Total R-squared from relaxed lasso fit: %.3f\n", x$totalR2))
+  }
   cat("", fill=TRUE)
-  print(x$coefficients)
+  if(dim(x$coefficients)[1]==0) {
+    cat("No variables selected\n")
+  }
+  else {
+    print(x$coefficients)
+  }
   invisible()
 }
 
-slcmaBayes <- function(slcma) {
-  y <- slcma$y
-  X_hypos <- slcma$X
+slcmaBayes <- function(x) {
+  y_resid <- x$y_resid
+  X_hypos <- x$X_hypos
   p <- dim(X_hypos)[2]
-  sigma <- slcma$multiple$sigma
+  sigma <- x$multiple$sigma
   numer <- numeric(p)
   for(j in 1:p) {
-    residuals <- lm(y ~ X_hypos[,j])$residuals
+    residuals <- lm(y_resid ~ X_hypos[,j])$residuals
     RSSj <- sum(residuals^2)
     numer[j] <- exp(-RSSj/(2*sigma^2))
   }
