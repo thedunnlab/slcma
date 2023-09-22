@@ -2,6 +2,7 @@
 ## https://kbroman.org/pkg_primer/
 
 ## run this script from outside the package base directory
+## e.g. Rscript slcma/generate-package-documentation.r
 
 library(roxygen2)
 library(devtools)
