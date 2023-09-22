@@ -10,5 +10,5 @@
 \item{x}{}
 }
 \description{
-Print method for objects of class `"slcmaRelax"`
+Print method for objects of class \code{slcmaRelax}
 }

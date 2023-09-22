@@ -2,34 +2,51 @@
 % Please edit documentation in R/slcma.R
 \name{slcma}
 \alias{slcma}
-\title{Structured Approach to Evaluating Life-Course Hypotheses: stage 1}
+\title{Structured Life Course Modelling Approach: stage 1}
 \usage{
-slcma(formula, data = environment(formula), adjust = NULL, ...)
+slcma(
+  formula,
+  data = environment(formula),
+  adjust = NULL,
+  seed = 1,
+  silent = FALSE,
+  ...
+)
 }
 \arguments{
-\item{formula}{An object of class `formula` which specifies the
+\item{formula}{An object of class \code{formula} which specifies the
 SLCMA model including outcome variable, exposures
 and lifecourse hypotheses.}
 
 \item{data}{An optional data frame, list or environment
-containing the variables in the model. If not found in `data`,
-the variables are taken from `environment(formula)`, typically
+containing the variables in the model. If not found in \code{data},
+the variables are taken from \code{environment(formula)}, typically
 the environment form which the function is called.}
 
-\item{adjust}{MISSING}
+\item{adjust}{A numerical vector containing the position of terms to
+be adjusted for in all models. (Default: NULL - no adjustment).}
 
-\item{...}{Additional arguments to be passed to `MI2dummy`.}
+\item{seed}{Integer input to \code{set.seed} to ensure that dataset 
+generation, if \code{data} contains multiple imputations, is reproducible (Default: 1).}
+
+\item{silent}{Logical. The function does not print any output when TRUE (Default: FALSE).}
+
+\item{...}{Additional arguments to be passed to \code{lars}.}
 }
 \value{
-An object of class `"sclma"` which inherits from
-the `"lars"` class containing output from the least angle regression
-analysis as well as the following items:
-* `X` Numeric matrix with columns corresponding to SLCMA hypotheses.
-* `y` Output variable.
-* `ncov`
-* `multiple`
-* `sanity`
+An list containing the following items:
+\itemize{
+\item \code{X_hypos} Numeric matrix with columns corresponding to SLCMA hypotheses.
+\item \code{y_resid} Output variable, adjusted for terms specified in \code{adjust}.
+\item \code{multiple} Output from multiple regression of all terms.
+\item \code{sanity} Data frame containing details of all terms specified by \code{formula}
+and whether they are included in all models.
+\item \code{fit} Output of \code{lars}.
+\item \code{base.r.squared} R-squared for the base model containing only those terms
+specified in \code{adjust}.
+\item \code{adjust.df} Degrees of freedom for the terms specified in \code{adjust}.
+}
 }
 \description{
-Performs stage 1 of the SLCMA
+Performs stage 1 (variable selection) of the SLCMA
 }

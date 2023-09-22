@@ -4,7 +4,7 @@
 \alias{slcmaFLI}
 \title{slcmaFLI}
 \usage{
-slcmaFLI(slcma, step, alpha = 0.05, ...)
+slcmaFLI(x, step, alpha = 0.05, ...)
 }
 \description{
 Short description of slcmaFLI.

@@ -7,8 +7,9 @@
 \method{print}{slcmaInfer}(x)
 }
 \arguments{
-\item{x}{Object of class "`slcmaInfer`" from the `slcmaInfer()` function.}
+\item{x}{Object of class \code{slcmaInfer}
+from the \code{slcmaInfer()} function.}
 }
 \description{
-Print method for objects of class `"slcmaInfer"`.
+Print method for objects of class \code{slcmaInfer}.
 }

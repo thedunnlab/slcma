@@ -5,19 +5,19 @@
 \title{SLCMA elbow plot}
 \usage{
 \method{plot}{slcma}(
-  slcma,
+  x,
   relax = FALSE,
   show.remove = FALSE,
   show.labels = TRUE,
   labels = NULL,
   selection.order = FALSE,
   xlab = "Variables selected",
-  ylab = "R-squared",
+  ylab = ifelse(x$adjust.df > 0, "Partial R-squared", "R-squared"),
   ...
 )
 }
 \arguments{
-\item{x}{Object of class "`slcma`" from the `slcma()` function.}
+\item{x}{Object of class \code{slcma} from the \code{slcma()} function.}
 }
 \description{
 Elbow plot (plot method for class "slcma")

@@ -4,31 +4,37 @@
 #### 21 September 2023
 
 
-#' Accumulation hypothesis
+#' Specifying hypotheses
 #'
-#' Function for deriving an accumulation variable
-#' from longitudinally measured exposures.
+#' Functions for deriving variables corresponding
+#' various hypotheses about longitudinally
+#' measured exposures.
+#'
+#' @param weights Vector of numeric weights for combining exposures,
+#' one per exposure.
+#' @param ... Binary exposure variables.
+#' @return Derived hypothesis variable(s) as follows:
+#' \itemize{
+#' \item \code{Accumulation(...)} - sum of exposures
+#' \item \code{Recency(weight,...)} - weighted sum of exposures
+#' \item \code{Change(x1,x2)} - variable indicating where the two exposures differ
+#' \item \code{Mobility(x1,x2)} - two variables with the first indicating upward mobility (i.e. \code{x1==0 && x2==1}) and the second indicating downward mobility (i.e. \code{x1==1 && x2==0})
+#' \item \code{Always(...)} - variable indicating whether all exposures present
+#' \item \code{Ever(...)} - variable indicating whether at least one exposure present
+#' }
 #' 
-#' @param ... Binary exposure variables to accumulate.
-#' @return Derived accumulation variable, i.e. sum of exposures.
 #' 
+#' @name SpecifyingHypotheses
+NULL
+
 #' @export
+#' @rdname SpecifyingHypotheses
 Accumulation <- function(...) {
   X <- cbind(...)
   apply(X,1,sum)
 }
 
-#' Recency hypothesis
-#'
-#' Function for deriving a recency variable
-#' from longitudinally measured exposures.
-#'
-#' @param weights Vector of numeric weights for combining exposures,
-#' one per exposure.
-#' @param ... Binary exposure variables to combine.
-#' @return Derived recency variable, i.e. weighted
-#' sum of exposures.
-#' 
+#' @rdname SpecifyingHypotheses
 #' @export
 Recency <- function(weights,...) {
   X <- cbind(...)
@@ -37,66 +43,35 @@ Recency <- function(weights,...) {
   }   
   apply(t(weights*t(X)),1,sum)
 }
-
-#' Change hypothesis
-#'
-#' Function for deriving a change variable
-#' from longitudinally measured exposures.
-#' 
-#' @param x1 First binary exposure measurement variable.
-#' @param x2 Second binary exposure measurement variable.
-#' @return Derived change variable, i.e. set to
-#' 1 for all cases where x1 differs from x2, otherwise 0.
-#' 
+ 
+#' @rdname SpecifyingHypotheses
 #' @export
-Change <- function(x1,x2) {
-  I(x2-x1)
+Change <- function(...) {
+  X <- cbind(...)
+  if (ncol(X) != 2)
+    stop("requires exactly two variables")
+  I(X[,2]-X[,1])
 }
 
-#' Mobility hypothesis
-#'
-#' Function for deriving a mobility variable
-#' from longitudinally measured exposures.
-#' 
-#' @param x1 First binary exposure measurement variable.
-#' @param x2 Second binary exposure measurement variable.
-#' @return Derived mobility variables, i.e. matrix
-#' of two columns, first column indicating
-#' upward mobility (`(1-x1)*x2`) and the second
-#' column indicating downward mobility (`(1-x2)*x1`).
-#' 
+#' @rdname SpecifyingHypotheses
 #' @export
-Mobility <- function(x1,x2) {
-  X <- cbind((1-x1)*x2,(1-x2)*x1)
+Mobility <- function(...) {
+  X <- cbind(...)
+  if (ncol(X) != 2)
+    stop("requires exactly two variables")
+  X <- cbind((1-X[,1])*X[,2],(1-X[,2])*X[,1])
   colnames(X) <- c("up","down")
   X
 }
 
-#' Always hypothesis
-#'
-#' Function for deriving an 'always' variable
-#' from longitudinally measured exposures.
-#' 
-#' @param ... Binary exposure variables to accumulate.
-#' @return Derived 'always' variable, i.e. set to
-#' 1 if exposure present for all exposure variables, and 0 otherwise.
-#' 
+#' @rdname SpecifyingHypotheses
 #' @export
 Always <- function(...) {
   X <- cbind(...)
   apply(X,1,prod)
 }
 
-#' Ever hypothesis
-#'
-#' Function for deriving an 'ever' variable
-#' from longitudinally measured exposures.
-#' 
-#' @param ... Binary exposure variables to accumulate.
-#' @return Derived 'ever' variable, i.e.
-#' set to 1 if exposure present for any exposure variable,
-#' otherwise 0.
-#' 
+#' @rdname SpecifyingHypotheses
 #' @export
 Ever <- function(...) {
   X <- cbind(...)
@@ -108,15 +83,15 @@ Ever <- function(...) {
 #' Creates a dummy dataset with the same samples means
 #' and sample covariances as that estimated from pooled imputed datasets.
 #'
-#' @param formula An object of class `formula` that specifies all terms
+#' @param formula An object of class \code{formula} that specifies all terms
 #' to be included in the dataset.
-#' @param data An object of class `mids' containing the variables  optional data frame, list or environment
-#' specified in `formula'.
-#' @param seed Integer input to `set.seed` to ensure that
+#' @param data An object of class \code{mids} containing the variables
+#' optional data frame, list or environment specified in \code{formula}.
+#' @param seed Integer input to \code{set.seed} to ensure that
 #' dataset generation is reproducible (Default: 1).
-#' @return Data frame of class `MI2dummy` including randomly
-#' generated variables specified by the specified `formula` with
-#' means and covariances obtained from the input `data`.
+#' @return Data frame of class \code{MI2dummy} including randomly
+#' generated variables specified by the specified \code{formula} with
+#' means and covariances obtained from the input \code{data}.
 #'
 #' @export
 MI2dummy <- function(formula, data, seed=1) {
@@ -186,30 +161,31 @@ MI2dummy <- function(formula, data, seed=1) {
 #'
 #' Performs stage 1 (variable selection) of the SLCMA
 #'
-#' @param formula An object of class `formula` which specifies the
+#' @param formula An object of class \code{formula} which specifies the
 #' SLCMA model including outcome variable, exposures
 #' and lifecourse hypotheses.
 #' @param data An optional data frame, list or environment
-#' containing the variables in the model. If not found in `data`,
-#' the variables are taken from `environment(formula)`, typically
+#' containing the variables in the model. If not found in \code{data},
+#' the variables are taken from \code{environment(formula)}, typically
 #' the environment form which the function is called.
 #' @param adjust A numerical vector containing the position of terms to
 #' be adjusted for in all models. (Default: NULL - no adjustment).
-#' @param seed Integer input to `set.seed` to ensure that dataset 
-#' generation, if `data' contains multiple imputations, is reproducible (Default: 1).
+#' @param seed Integer input to \code{set.seed} to ensure that dataset 
+#' generation, if \code{data} contains multiple imputations, is reproducible (Default: 1).
 #' @param silent Logical. The function does not print any output when TRUE (Default: FALSE).
-#' @param ... Additional arguments to be passed to `lars`.
-#' @return An object containing output the following items:
-#' * `X_hypos` Numeric matrix with columns corresponding to SLCMA hypotheses.
-#' * `y_resid` Output variable, adjusted for terms specified in `adjust`.
-#' * `multiple` Output from multiple regression of all terms.
-#' * `sanity` Data frame containing details of all terms specified by `formula'
+#' @param ... Additional arguments to be passed to \code{lars}.
+#' @return An list containing the following items:
+#' \itemize{
+#' \item \code{X_hypos} Numeric matrix with columns corresponding to SLCMA hypotheses.
+#' \item \code{y_resid} Output variable, adjusted for terms specified in \code{adjust}.
+#' \item \code{multiple} Output from multiple regression of all terms.
+#' \item \code{sanity} Data frame containing details of all terms specified by \code{formula}
 #' and whether they are included in all models.
-#' * `fit' Output of `lars'.
-#' * `base.r.squared` R-squared for the base model containing only those terms
-#' specified in `adjust`.
-#' * `adjust.df` Degrees of freedom for the terms specified in `adjust`.
-#'  
+#' \item \code{fit} Output of \code{lars}.
+#' \item \code{base.r.squared} R-squared for the base model containing only those terms
+#' specified in \code{adjust}.
+#' \item \code{adjust.df} Degrees of freedom for the terms specified in \code{adjust}.
+#' }
 #' @export 
 slcma <- function(formula, data=environment(formula), adjust=NULL, seed=1, silent=FALSE, ...) {
 
@@ -281,7 +257,7 @@ slcma <- function(formula, data=environment(formula), adjust=NULL, seed=1, silen
 #'
 #' Print method for objects of class "slcma".
 #'
-#' @param x Object of class "`slcma`" from the `slcma()` function.
+#' @param x Object of class \code{slcma} from the \code{slcma()} function.
 #'
 #' @export
 print.slcma <- function(x) {
@@ -292,7 +268,7 @@ print.slcma <- function(x) {
 #' 
 #' Summary method for class "slcma".
 #'
-#' @param x Object of class "`slcma`" from the `slcma()` function.
+#' @param x Object of class \code{slcma} from the \code{slcma()} function.
 #'
 #' @export
 summary.slcma <- function(x) {
@@ -313,9 +289,9 @@ summary.slcma <- function(x) {
 
 #' SLCMA summary output
 #'
-#' Print method for objects of class "summary.slcma".
+#' Print method for objects of class \code{summary.slcma}.
 #'
-#' @param x Object of class "`summary.slcma`" from the `summary.slcma()` function.
+#' @param x Object of class \code{summary.slcma} from the \code{summary.slcma()} function.
 #'
 #' @export
 print.summary.slcma <- function(x) {
@@ -335,7 +311,7 @@ print.summary.slcma <- function(x) {
 #'
 #' Elbow plot (plot method for class "slcma")
 #'
-#' @param x Object of class "`slcma`" from the `slcma()` function.
+#' @param x Object of class \code{slcma} from the \code{slcma()} function.
 #'
 #' @export
 plot.slcma <- function(x, relax=FALSE, show.remove=FALSE, show.labels=TRUE, labels=NULL, selection.order=FALSE,
@@ -396,17 +372,17 @@ plot.slcma <- function(x, relax=FALSE, show.remove=FALSE, show.labels=TRUE, labe
 #'
 #' Performs stage 2 of the SLCMA for user-specified methods
 #'
-#' @param x Object of class "`slcma`" from the `slcma()` function.
+#' @param x Object of class \code{slcma} from the \code{slcma()} function.
 #' @param step Integer specifying which step of the LARS procedure produces 
 #' the model on which inference is to be performed.
 #' @param method Character string or vector containing the method or methods of inference
-#' to be performed. (Default: "slcmaFLI" - Fixed Lasso Inference).
+#' to be performed. (Default: \code{slcmaFLI} - Fixed Lasso Inference).
 #' @param alpha Level of significance for confidence interval calculations. Confidence
-#' intervals will have (1 - `alpha`) * 100% coverage. (Default: 0.05 - 95% coverage).
+#' intervals will have \code{(1 - alpha) * 100}\% coverage. (Default: 0.05 - 95\% coverage).
 #' @param do.maxtCI Logical, indicating whether confidence intervals should be 
 #' calculated for the max-|t| test. (Default: FALSE).
-#' @param ... Additional arguments to `fixedLassoInf()` (see the `selectiveinference` package).
-#' @return
+#' @param ... Additional arguments to \code{fixedLassoInf()} (see the \code{selectiveinference} package).
+#' @return An list of class \code{slcmaInfer} with one element providing the output for each inference method.
 #' 
 #' @export
 slcmaInfer <- function(x, step=1L, method="slcmaFLI", alpha=0.05, do.maxtCI=FALSE, ...) {
@@ -452,9 +428,10 @@ slcmaInfer <- function(x, step=1L, method="slcmaFLI", alpha=0.05, do.maxtCI=FALS
 
 #' SLCMA stage 2 output
 #'
-#' Print method for objects of class `"slcmaInfer"`.
+#' Print method for objects of class \code{slcmaInfer}.
 #'
-#' @param x Object of class "`slcmaInfer`" from the `slcmaInfer()` function.
+#' @param x Object of class \code{slcmaInfer}
+#' from the \code{slcmaInfer()} function.
 #'
 #' @export
 print.slcmaInfer <- function(x) {
@@ -529,7 +506,7 @@ slcmaFLI <- function(x, step, alpha=0.05, ...) {
 
 #' Print slcmaFLI output
 #'
-#' Print method for class "slcmaFLI" (adapted from 'selectiveinference' package).
+#' Print method for class \code{slcmaFLI} (adapted from \code{selectiveinference} package).
 #'
 #' @param x
 #' @param tailarea (Default: TRUE)
@@ -628,7 +605,7 @@ slcmaMaxt <- function(x, alpha=0.05, do.CI=TRUE, seed=12345, ...) {
 
 #' Print slcmaMaxt
 #' 
-#' Print method for objects of class `"slcmaMaxt"`.
+#' Print method for objects of class \code{slcmaMaxt}.
 #'
 #' @param x
 #'
@@ -712,7 +689,7 @@ slcmaRelax <- function(x, step, alpha=0.05) {
 
 #' Print slcmaRelax
 #'
-#' Print method for objects of class `"slcmaRelax"`
+#' Print method for objects of class \code{slcmaRelax}
 #'
 #' @param x
 #'

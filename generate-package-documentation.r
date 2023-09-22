@@ -1,4 +1,4 @@
-B## Useful information for creating packages
+## Useful information for creating packages
 ## https://kbroman.org/pkg_primer/
 
 ## run this script from outside the package base directory

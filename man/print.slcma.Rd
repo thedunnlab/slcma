@@ -7,7 +7,7 @@
 \method{print}{slcma}(x)
 }
 \arguments{
-\item{x}{Object of class "`slcma`" from the `slcma()` function.}
+\item{x}{Object of class \code{slcma} from the \code{slcma()} function.}
 }
 \description{
 Print method for objects of class "slcma".

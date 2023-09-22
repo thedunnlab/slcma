@@ -10,5 +10,5 @@
 \item{x}{}
 }
 \description{
-Print method for objects of class `"slcmaMaxt"`.
+Print method for objects of class \code{slcmaMaxt}.
 }

@@ -18,94 +18,6 @@ Load the library.
 library(slcma)
 ```
 
-```
-## Loading required package: lars
-```
-
-```
-## Warning: package 'lars' was built under R version 4.2.1
-```
-
-```
-## Loaded lars 1.3
-```
-
-```
-## Loading required package: selectiveInference
-```
-
-```
-## Loading required package: glmnet
-```
-
-```
-## Loading required package: Matrix
-```
-
-```
-## Loaded glmnet 4.1-6
-```
-
-```
-## Loading required package: intervals
-```
-
-```
-## 
-## Attaching package: 'intervals'
-```
-
-```
-## The following object is masked from 'package:Matrix':
-## 
-##     expand
-```
-
-```
-## Loading required package: survival
-```
-
-```
-## Loading required package: adaptMCMC
-```
-
-```
-## Loading required package: parallel
-```
-
-```
-## Loading required package: coda
-```
-
-```
-## Loading required package: MASS
-```
-
-```
-## Loading required package: mice
-```
-
-```
-## 
-## Attaching package: 'mice'
-```
-
-```
-## The following object is masked from 'package:stats':
-## 
-##     filter
-```
-
-```
-## The following objects are masked from 'package:base':
-## 
-##     cbind, rbind
-```
-
-```
-## Loading required package: mvtnorm
-```
-
 ## Example 1. SLCMA
 
 Generate some data that matches that seen in Mishra et al (2009).
@@ -167,14 +79,15 @@ summary(myslcma)
 ```
 ## 
 ## Summary of LARS procedure
-##  Step        Variable selected Variable removed Variables    R2
-##     1 Accumulation(x1, x2, x3)                          1 0.022
-##     2                       x1                          2 0.028
-##     3     Mobility(x2, x3)down                          3 0.039
-##     4                       x3                          4 0.039
-##     5       Mobility(x1, x2)up                          5 0.040
-##     6                                        x3         4 0.041
-##     7     Mobility(x1, x2)down                          5 0.041
+##  Step        Variable selected Variable removed Variables R-squared
+##     0                                                   0     0.000
+##     1 Accumulation(x1, x2, x3)                          1     0.023
+##     2                       x1                          2     0.028
+##     3     Mobility(x2, x3)down                          3     0.039
+##     4                       x3                          4     0.040
+##     5       Mobility(x1, x2)up                          5     0.040
+##     6                                        x3         4     0.042
+##     7     Mobility(x1, x2)down                          5     0.042
 ```
 
 ## Elbow plots
@@ -269,18 +182,18 @@ slcmaInfer(myslcma, 3)
 ## Inference for model at Step 3 of LARS procedure
 ## 
 ## Number of selected variables: 3
-## Lasso R-squared: 0.039
+## R-squared from lasso fit: 0.039
 ## 
 ## Results from fixed lasso inference (selective inference):
 ## 
-## Standard deviation of noise (specified or estimated) sigma = 5.212
+## Standard deviation of noise (specified or estimated) sigma = 5.174
 ## 
 ## Testing results at lambda = 5.553, with alpha = 0.050
 ## 
 ##                            Coef P-value  CI.lo  CI.up LoTailArea UpTailArea
-## x1                       -0.778   0.154 -1.705  0.836      0.024      0.025
-## Accumulation(x1, x2, x3) -0.608   0.010 -1.239 -0.106      0.024      0.025
-## Mobility(x2, x3)down      1.196   0.049 -0.273  2.190      0.025      0.024
+## x1                       -0.778   0.151 -1.693  0.811      0.025      0.025
+## Accumulation(x1, x2, x3) -0.608   0.010 -1.229 -0.110      0.025      0.025
+## Mobility(x2, x3)down      1.196   0.047 -0.251  2.184      0.025      0.024
 ```
 
 We have the option to report the results of the relaxed lasso instead
@@ -294,16 +207,16 @@ slcmaInfer(myslcma, 3, method="relax")
 ## Inference for model at Step 3 of LARS procedure
 ## 
 ## Number of selected variables: 3
-## Lasso R-squared: 0.039
+## R-squared from lasso fit: 0.039
 ## 
 ## Results from relaxed lasso:
 ## 
-## Relaxed r-squared: 0.041
+## R-squared from relaxed lasso fit: 0.041
 ## 
 ##                                Coef        SE      CI.lo      CI.up
-## x1                       -0.7781529 0.4623195 -1.6842824  0.1279767
-## Accumulation(x1, x2, x3) -0.6082188 0.2309103 -1.0607948 -0.1556428
-## Mobility(x2, x3)down      1.1962127 0.5042495  0.2079019  2.1845236
+## x1                       -0.7781529 0.4589122 -1.6776043  0.1212986
+## Accumulation(x1, x2, x3) -0.6082188 0.2292086 -1.0574593 -0.1589783
+## Mobility(x2, x3)down      1.1962127 0.5005332  0.2151856  2.1772398
 ```
 
 We have the option of trying the max-|t| test, but only at Step 1.
@@ -318,17 +231,17 @@ slcmaInfer(myslcma, 1, method="maxt")
 ## Inference for model at Step 1 of LARS procedure
 ## 
 ## Number of selected variables: 1
-## Lasso R-squared: 0.022
+## R-squared from lasso fit: 0.023
 ## 
 ## Results from max-|t| test:
 ## 
-## Error standard deviation: 5.205 on 1079 degrees of freedom
+## Error standard deviation: 5.167 on 1082 degrees of freedom
 ## 
 ##                                Coef      P-value
-## Accumulation(x1, x2, x3) -0.9641575 4.962249e-09
+## Accumulation(x1, x2, x3) -0.9641575 3.677438e-09
 ## 
 ## Message regarding calculation of P-value: Normal Completion
-##  with estimated numeric absolute error: 2.440858e-09
+##  with estimated numeric absolute error: 1.746332e-09
 ```
 
 We can also get confidence intervals from the max-|t| test, 
@@ -343,18 +256,18 @@ slcmaInfer(myslcma, 1, method="maxt", do.maxtCI=TRUE)
 ## Inference for model at Step 1 of LARS procedure
 ## 
 ## Number of selected variables: 1
-## Lasso R-squared: 0.022
+## R-squared from lasso fit: 0.023
 ## 
 ## Results from max-|t| test:
 ## 
-## Error standard deviation: 5.205 on 1079 degrees of freedom
+## Error standard deviation: 5.167 on 1082 degrees of freedom
 ## Confidence interval coverage 95.0 percent
 ## 
 ##                                Coef      P-value     CI.lo      CI.up
-## Accumulation(x1, x2, x3) -0.9641575 4.962249e-09 -1.313807 -0.6419562
+## Accumulation(x1, x2, x3) -0.9641575 3.677438e-09 -1.311416 -0.6442471
 ## 
 ## Message regarding calculation of P-value: Normal Completion
-##  with estimated numeric absolute error: 2.440858e-09
+##  with estimated numeric absolute error: 1.746332e-09
 ```
 
 We have the option of Bayesian inference,
@@ -369,18 +282,18 @@ slcmaInfer(myslcma, 1, method="Bayes")
 ## Inference for model at Step 1 of LARS procedure
 ## 
 ## Number of selected variables: 1
-## Lasso R-squared: 0.022
+## R-squared from lasso fit: 0.023
 ## 
 ## Posterior probabilities:
 ##                                    
-## x1                       0.01427827
-## x2                       0.00000043
-## x3                       0.00231119
-## Accumulation(x1, x2, x3) 0.98340753
-## Mobility(x1, x2)up       0.00000029
-## Mobility(x1, x2)down     0.00000001
-## Mobility(x2, x3)up       0.00000001
-## Mobility(x2, x3)down     0.00000227
+## x1                       0.01341982
+## x2                       0.00000035
+## x3                       0.00211407
+## Accumulation(x1, x2, x3) 0.98446365
+## Mobility(x1, x2)up       0.00000023
+## Mobility(x1, x2)down     0.00000000
+## Mobility(x2, x3)up       0.00000000
+## Mobility(x2, x3)down     0.00000187
 ```
 
 It is possible to produce results for all inference methods
@@ -398,44 +311,44 @@ slcmaInfer(myslcma, 1, method=c("selectiveInference","relax","maxt","Bayes"))
 ## Inference for model at Step 1 of LARS procedure
 ## 
 ## Number of selected variables: 1
-## Lasso R-squared: 0.022
+## R-squared from lasso fit: 0.023
 ## 
 ## Results from fixed lasso inference (selective inference):
 ## 
-## Standard deviation of noise (specified or estimated) sigma = 5.212
+## Standard deviation of noise (specified or estimated) sigma = 5.174
 ## 
 ## Testing results at lambda = 18.578, with alpha = 0.050
 ## 
-##                            Coef P-value  CI.lo  CI.up LoTailArea UpTailArea
-## Accumulation(x1, x2, x3) -0.964       0 -1.273 -0.631      0.024      0.024
+##                            Coef P-value CI.lo  CI.up LoTailArea UpTailArea
+## Accumulation(x1, x2, x3) -0.964       0 -1.27 -0.636      0.025      0.025
 ## 
 ## Results from max-|t| test:
 ## 
-## Error standard deviation: 5.205 on 1079 degrees of freedom
+## Error standard deviation: 5.167 on 1082 degrees of freedom
 ## 
 ##                                Coef      P-value
-## Accumulation(x1, x2, x3) -0.9641575 4.962249e-09
+## Accumulation(x1, x2, x3) -0.9641575 3.677438e-09
 ## 
 ## Message regarding calculation of P-value: Normal Completion
-##  with estimated numeric absolute error: 2.440858e-09
+##  with estimated numeric absolute error: 1.746332e-09
 ## 
 ## Results from relaxed lasso:
 ## 
-## Relaxed r-squared: 0.034
+## R-squared from relaxed lasso fit: 0.034
 ## 
-##                                Coef        SE     CI.lo     CI.up
-## Accumulation(x1, x2, x3) -0.9641575 0.1562853 -1.270471 -0.657844
+##                                Coef        SE     CI.lo      CI.up
+## Accumulation(x1, x2, x3) -0.9641575 0.1551334 -1.268213 -0.6601015
 ## 
 ## Posterior probabilities:
 ##                                    
-## x1                       0.01427827
-## x2                       0.00000043
-## x3                       0.00231119
-## Accumulation(x1, x2, x3) 0.98340753
-## Mobility(x1, x2)up       0.00000029
-## Mobility(x1, x2)down     0.00000001
-## Mobility(x2, x3)up       0.00000001
-## Mobility(x2, x3)down     0.00000227
+## x1                       0.01341982
+## x2                       0.00000035
+## x3                       0.00211407
+## Accumulation(x1, x2, x3) 0.98446365
+## Mobility(x1, x2)up       0.00000023
+## Mobility(x1, x2)down     0.00000000
+## Mobility(x2, x3)up       0.00000000
+## Mobility(x2, x3)down     0.00000187
 ```
 
 ## Example 2. Adjusting for covariates
@@ -512,10 +425,11 @@ summary(slcmaAdjust)
 ```
 ## 
 ## Summary of LARS procedure
-##  Step        Variable selected Variable removed Variables    R2
-##     1                       x3                          1 0.316
-##     2 Accumulation(x1, x2, x3)                          2 0.359
-##     3           Change(x1, x2)                          3 0.360
+##  Step        Variable selected Variable removed Variables Partial R-squared
+##     0                                                   0             0.000
+##     1                       x3                          1             0.316
+##     2 Accumulation(x1, x2, x3)                          2             0.359
+##     3           Change(x1, x2)                          3             0.360
 ```
 
 ```r
@@ -539,7 +453,9 @@ slcmaInfer(slcmaAdjust,1, method=c("selectiveInference","relax","maxt","Bayes"))
 ## Inference for model at Step 1 of LARS procedure
 ## 
 ## Number of selected variables: 1
-## Lasso R-squared: 0.316
+## Partial R-squared from lasso fit: 0.316
+##   Total R-squared from lasso fit: 0.594
+## Adjusted for: covariate 
 ## 
 ## Results from fixed lasso inference (selective inference):
 ## 
@@ -552,7 +468,7 @@ slcmaInfer(slcmaAdjust,1, method=c("selectiveInference","relax","maxt","Bayes"))
 ## 
 ## Results from max-|t| test:
 ## 
-## Error standard deviation: 3.094 on 391 degrees of freedom
+## Error standard deviation: 3.094 on 395 degrees of freedom
 ## 
 ##         Coef P-value
 ## x3 0.9637339       0
@@ -562,7 +478,8 @@ slcmaInfer(slcmaAdjust,1, method=c("selectiveInference","relax","maxt","Bayes"))
 ## 
 ## Results from relaxed lasso:
 ## 
-## Relaxed r-squared: 0.357
+## Partial R-squared from relaxed lasso fit: 0.357
+##   Total R-squared from relaxed lasso fit: 0.618
 ## 
 ##         Coef         SE     CI.lo    CI.up
 ## x3 0.9637339 0.06493734 0.8364591 1.091009
@@ -760,11 +677,12 @@ summary(MIslcma)
 ```
 ## 
 ## Summary of LARS procedure
-##  Step Variable selected Variable removed Variables    R2
-##     1    Change(x1, x3)                          1 0.544
-##     2                x2                          2 0.564
-##     3                x1                          3 0.565
-##     4  Ever(x1, x2, x3)                          4 0.565
+##  Step Variable selected Variable removed Variables Partial R-squared
+##     0                                            0             0.000
+##     1    Change(x1, x3)                          1             0.544
+##     2                x2                          2             0.564
+##     3                x1                          3             0.565
+##     4  Ever(x1, x2, x3)                          4             0.565
 ```
 
 ```r
@@ -788,7 +706,9 @@ slcmaInfer(MIslcma,1, method=c("selectiveInference","relax","maxt","Bayes"))
 ## Inference for model at Step 1 of LARS procedure
 ## 
 ## Number of selected variables: 1
-## Lasso R-squared: 0.544
+## Partial R-squared from lasso fit: 0.544
+##   Total R-squared from lasso fit: 0.570
+## Adjusted for: covariate 
 ## 
 ## Results from fixed lasso inference (selective inference):
 ## 
@@ -801,7 +721,7 @@ slcmaInfer(MIslcma,1, method=c("selectiveInference","relax","maxt","Bayes"))
 ## 
 ## Results from max-|t| test:
 ## 
-## Error standard deviation: 5.195 on 242 degrees of freedom
+## Error standard deviation: 5.195 on 244 degrees of freedom
 ## 
 ##                    Coef P-value
 ## Change(x1, x3) 2.026825       0
@@ -811,7 +731,8 @@ slcmaInfer(MIslcma,1, method=c("selectiveInference","relax","maxt","Bayes"))
 ## 
 ## Results from relaxed lasso:
 ## 
-## Relaxed r-squared: 0.561
+## Partial R-squared from relaxed lasso fit: 0.561
+##   Total R-squared from relaxed lasso fit: 0.586
 ## 
 ##                    Coef        SE   CI.lo   CI.up
 ## Change(x1, x3) 2.026825 0.1142905 1.80282 2.25083

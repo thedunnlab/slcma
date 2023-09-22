@@ -4,12 +4,12 @@
 \alias{slcmaMaxt}
 \title{Max-|t| test}
 \usage{
-slcmaMaxt(slcma, alpha = 0.05, do.CI = TRUE, seed = 12345, ...)
+slcmaMaxt(x, alpha = 0.05, do.CI = TRUE, seed = 12345, ...)
 }
 \arguments{
 \item{alpha}{(Default: 0.05)}
 
-\item{do.CI}{(Default: TRUE)}
+\item{do.CI}{(Default: FALSE)}
 
 \item{seed}{(Default: 12345)}
 }

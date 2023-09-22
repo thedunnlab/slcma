@@ -10,5 +10,5 @@
 \item{tailarea}{(Default: TRUE)}
 }
 \description{
-Print method for class "slcmaFLI" (adapted from 'selectiveinference' package).
+Print method for class \code{slcmaFLI} (adapted from \code{selectiveinference} package).
 }

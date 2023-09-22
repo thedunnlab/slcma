@@ -7,22 +7,19 @@
 MI2dummy(formula, data, seed = 1)
 }
 \arguments{
-\item{formula}{An object of class `formula` which specifies the
-SLCMA model including outcome variable, exposures
-and lifecourse hypotheses.}
+\item{formula}{An object of class \code{formula} that specifies all terms
+to be included in the dataset.}
 
-\item{data}{An optional data frame, list or environment
-containing the variables in the model. If not found in `data`,
-the variables are taken from `environment(formula)`, typically
-the environment form which the function is called.}
+\item{data}{An object of class \code{mids} containing the variables
+optional data frame, list or environment specified in \code{formula}.}
 
-\item{seed}{Integer input to `set.seed` to ensure that
+\item{seed}{Integer input to \code{set.seed} to ensure that
 dataset generation is reproducible (Default: 1).}
 }
 \value{
-Data frame of class `MI2dummy` including randomly
-generated variables specified by the specified `formula` with
-means and covariances obtained from the input `data`.
+Data frame of class \code{MI2dummy} including randomly
+generated variables specified by the specified \code{formula} with
+means and covariances obtained from the input \code{data}.
 }
 \description{
 Creates a dummy dataset with the same samples means

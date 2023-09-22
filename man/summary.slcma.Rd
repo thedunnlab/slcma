@@ -7,7 +7,7 @@
 \method{summary}{slcma}(x)
 }
 \arguments{
-\item{x}{Object of class "`slcma`" from the `slcma()` function.}
+\item{x}{Object of class \code{slcma} from the \code{slcma()} function.}
 }
 \description{
 Summary method for class "slcma".
