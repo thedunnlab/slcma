@@ -1,12 +1,12 @@
 #### Draft slcma R package
-#### Version 0.7
+#### Version 0.8
 #### Andrew Smith
-#### 21 September 2023
+#### 27 October 2023
 
 
 #' Specifying hypotheses
 #'
-#' Functions for deriving variables corresponding
+#' Functions for deriving variables corresponding to
 #' various hypotheses about longitudinally
 #' measured exposures.
 #'
@@ -219,6 +219,10 @@ slcma <- function(formula, data=environment(formula), adjust=NULL, seed=1, silen
   
   sanity <- data.frame(Term=colnames(mm),
                        Role=factor(r, levels=c(T,F), labels=c("Adjusted for in all models","Available for variable selection")))
+  if(all(r)) {
+    if(!silent) print(sanity, row.names=FALSE)
+    stop("No variables available for selection - alter 'formula' and/or 'adjust'")
+  }
 
   covars  <- mm[, r, drop=FALSE]
   X_hypos <- mm[,!r, drop=FALSE]
@@ -483,15 +487,13 @@ slcmaFLI <- function(x, step, alpha=0.05, ...) {
   if(step > length(x$fit$action)) {
     stop("'step' is greater than the number of LARS steps") 
   }
-  if(step == length(x$fit$action)) {
-    stop("Fixed lasso inference and/or selective inference is not available at the final step of the LARS procedure")
-  }
   sumsq <- x$fit$normx
   X_normed <- scale(x$X_hypos, scale=sumsq)
   if(step == 0) {
     fli <- list(lambda=x$fit$lambda[step+1])
   }
   else {
+    x$fit$lambda <- c(x$fit$lambda, min(x$fit$lambda)/2)
     fli <- fixedLassoInf(X_normed, x$y_resid, 
                          x$fit$beta[step+1,], x$fit$lambda[step+1], 
                          type="partial", alpha=alpha, ...)
@@ -585,7 +587,7 @@ slcmaMaxt <- function(x, alpha=0.05, do.CI=TRUE, seed=12345, ...) {
                  error = attributes(p.maxt)$error, msg = attributes(p.maxt)$msg, alpha = alpha)
   if(do.CI) {
     search_middle <- r
-    search_radius <- 1.5*qnorm(1-alpha/2)*s*sqrt(XtX[selection,selection])
+    search_radius <- 3*qnorm(1-alpha/2)*s*sqrt(XtX[selection,selection])
     lower <-  uniroot(function(beta0) {
                         P6(beta0, beta0+abs(r-beta0), p, selection, s, XtX, p, d, ...) -
                         P6(beta0, beta0-abs(r-beta0), p, selection, s, XtX, p, d, ...) -
