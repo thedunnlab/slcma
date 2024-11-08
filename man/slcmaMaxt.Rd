@@ -7,11 +7,22 @@
 slcmaMaxt(x, alpha = 0.05, do.CI = TRUE, seed = 12345, ...)
 }
 \arguments{
-\item{alpha}{(Default: 0.05)}
+\item{x}{Object of class \code{slcma} from the \code{slcma()} function.}
 
-\item{do.CI}{(Default: FALSE)}
+\item{alpha}{Level of significance for confidence interval calculations. Confidence
+intervals will have \code{(1 - alpha) * 100}\% coverage. (Default: 0.05 - 95\% coverage)}
 
-\item{seed}{(Default: 12345)}
+\item{do.CI}{Logical, indicating whether confidence intervals should be calculated. (Default: TRUE).}
+
+\item{search.width}{Width of initial interval used in numerical estimation of the confidence intervals,
+in multiples of the width of the naive confidence interval. (Default: 3).}
+
+\item{seed}{Integer input to \code{set.seed} to ensure that output of \code{pmvt} is reproducible. (Default: 12345)}
+
+\item{...}{Additional arguments to be passed to \code{pmvt}}
+}
+\value{
+A list of class \code{slcmaMaxt} providing the output for the max-|t| test
 }
 \description{
 Function for max-|t| test and associated confidence intervals
