@@ -6,6 +6,20 @@
 \usage{
 slcmaFLI(x, step, alpha = 0.05, ...)
 }
+\arguments{
+\item{x}{Object of class \code{slcma} from the \code{slcma()} function.}
+
+\item{step}{Integer specifying which step of the LARS procedure produces
+the model on which inference is to be performed.}
+
+\item{alpha}{Level of significance for confidence interval calculations. Confidence
+intervals will have \code{(1 - alpha) * 100}\% coverage. (Default: 0.05 - 95\% coverage).}
+
+\item{...}{Additional arguments to \code{fixedLassoInf()} (see the \code{selectiveinference} package).}
+}
+\value{
+A list of class \code{slcmaFLI} providing the output for fixed lasso inference
+}
 \description{
-Short description of slcmaFLI.
+Performs fixed lasso inference
 }
