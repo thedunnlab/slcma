@@ -1,10 +1,10 @@
 ---
-title: "Examples demonstrating slcma R functions v0.5.R"
+title: "Examples demonstrating slcma R package v0.9"
 author: Andrew Smith
-date: 15 December 2022
+date: 08 November 2024
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Examples demonstrating slcma R functions v0.5.R}
+  %\VignetteIndexEntry{Examples demonstrating slcma R package v0.9}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputnc}
 ---
@@ -20,7 +20,7 @@ library(slcma)
 ## Example 1. SLCMA
 
 Generate some data that matches that seen in Mishra et al (2009).
-This is the code I supplied in my 2015 Epidemiology paper.
+This is the code supplied in Smith et al (2015).
 
 ```{r}
 N <- c(141,20,88,80,40,35,317,367)
@@ -37,7 +37,9 @@ e <- lm(epsilon ~ x1 * x2 * x3)$residuals
 y <- rep(BMI,N) + rep(SE*sqrt(N),N) * e/sd(e)
 ```
 
-As in my 2015 Epidemiology paper, perform SLCMA with 3 critical periods (early, middle, late)
+As in Smith et al (2015), perform SLCMA with 
+
+* 3 critical periods (early, middle, late)
 
 * Accumulation
 
@@ -134,7 +136,7 @@ slcmaInfer(myslcma, 1, method=c("selectiveInference","relax","maxt","Bayes"))
 ## Example 2. Adjusting for covariates
 
 Generate some data
-(this is the code I supplied in my 2015 IJE paper).
+(this is the code supplied in Smith et al (2016)).
 ```{r}
 n <- 400
 set.seed(1234)
@@ -181,7 +183,7 @@ slcmaInfer(slcmaAdjust,1, method=c("selectiveInference","relax","maxt","Bayes"))
 ## Example 3. Covariates and missing values
 
 Some simulated data with missing values
-(this is the code I supplied to The Dunn Lab in 2016)
+(code originally supplied to The Dunn Lab in 2016)
 
 ```{r}
 set.seed(123)
@@ -233,20 +235,4 @@ Can recreate the dummy dataset used within the above SLCMA
 ```{r}
 myMIdata <- MI2dummy(y ~ x1 + x2 + x3 + Accumulation(x1,x2,x3) + 
                      Change(x1,x3) + Ever(x1,x2,x3) + covariate, imputedData)
-```
-
-Note how sums, sums of squares and cross products are the same for `Accumulation(x1,x2,x3)` and `x1+x2+x3`.
-
-```{r}
-sum(myMIdata$`Accumulation(x1, x2, x3)`)
-sum(myMIdata$x1+myMIdata$x2+myMIdata$x3)
-
-sum(myMIdata$`Accumulation(x1, x2, x3)`^2)
-sum((myMIdata$x1+myMIdata$x2+myMIdata$x3)^2)
-
-sum(myMIdata$x1 * myMIdata$`Accumulation(x1, x2, x3)`)
-sum(myMIdata$x1 * (myMIdata$x1+myMIdata$x2+myMIdata$x3))
-
-sum(myMIdata$y * myMIdata$`Accumulation(x1, x2, x3)`)
-sum(myMIdata$y * (myMIdata$x1+myMIdata$x2+myMIdata$x3))
 ```
