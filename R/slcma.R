@@ -1,7 +1,7 @@
-#### Draft slcma R package
+#### Draft slcma R package functions
 #### Version 0.9
 #### Andrew Smith
-#### 31 July 2024
+#### 08 November 2024
 
 
 #' Specifying hypotheses
@@ -85,8 +85,7 @@ Ever <- function(...) {
 #'
 #' @param formula An object of class \code{formula} that specifies all terms
 #' to be included in the dataset.
-#' @param data An object of class \code{mids} containing the variables
-#' optional data frame, list or environment specified in \code{formula}.
+#' @param data An object of class \code{mids} containing the variables specified in \code{formula}.
 #' @param seed Integer input to \code{set.seed} to ensure that
 #' dataset generation is reproducible (Default: 1).
 #' @return Data frame of class \code{MI2dummy} including randomly
@@ -162,12 +161,11 @@ MI2dummy <- function(formula, data, seed=1) {
 #' Performs stage 1 (variable selection) of the SLCMA
 #'
 #' @param formula An object of class \code{formula} which specifies the
-#' SLCMA model including outcome variable, exposures
-#' and lifecourse hypotheses.
+#' SLCMA model including outcome variable, lifecourse hypotheses and exposures.
 #' @param data An optional data frame, list or environment
 #' containing the variables in the model. If not found in \code{data},
 #' the variables are taken from \code{environment(formula)}, typically
-#' the environment form which the function is called.
+#' the environment from which the function is called.
 #' @param adjust A numerical vector containing the position of terms to
 #' be adjusted for in all models. (Default: NULL - no adjustment).
 #' @param seed Integer input to \code{set.seed} to ensure that dataset 
@@ -372,7 +370,7 @@ plot.slcma <- function(x, relax=FALSE, show.remove=FALSE, show.labels=TRUE, labe
 }
 
 
-#' Structured Life Course Modelling Approach: stage 1
+#' Structured Life Course Modelling Approach: stage 2
 #'
 #' Performs stage 2 of the SLCMA for user-specified methods
 #'
@@ -382,13 +380,13 @@ plot.slcma <- function(x, relax=FALSE, show.remove=FALSE, show.labels=TRUE, labe
 #' @param method Character string or vector containing the method or methods of inference
 #' to be performed. (Default: \code{slcmaFLI} - Fixed Lasso Inference).
 #' @param alpha Level of significance for confidence interval calculations. Confidence
-#' intervals will have \code{(1 - alpha) * 100}\% coverage. (Default: 0.05 - 95\% coverage).
+#' intervals will have \code{(1 - alpha) * 100}% coverage. (Default: 0.05 - 95% coverage).
 #' @param do.maxtCI Logical, indicating whether confidence intervals should be 
 #' calculated for the max-|t| test. (Default: FALSE).
 #' @param search.width Width of initial interval used in numerical estimation of the confidence intervals
 #' related to the max-|t| test, in multiples of the width of the naive confidence interval. (Default: 3).
 #' @param ... Additional arguments to \code{fixedLassoInf()} (see the \code{selectiveinference} package).
-#' @return An list of class \code{slcmaInfer} with one element providing the output for each inference method.
+#' @return A list of class \code{slcmaInfer} with one element providing the output for each inference method.
 #' 
 #' @export
 slcmaInfer <- function(x, step=1L, method="slcmaFLI", alpha=0.05, do.maxtCI=FALSE, search.width=3, ...) {
@@ -473,13 +471,15 @@ print.slcmaInfer <- function(x) {
 
 #' slcmaFLI
 #'
-#' Short description of slcmaFLI.
+#' Performs fixed lasso inference
 #'
-#' @param x
-#' @param step
-#' @param alpha
-#' @param ...
-#' @return
+#' @param x Object of class \code{slcma} from the \code{slcma()} function.
+#' @param step Integer specifying which step of the LARS procedure produces 
+#' the model on which inference is to be performed.
+#' @param alpha Level of significance for confidence interval calculations. Confidence
+#' intervals will have \code{(1 - alpha) * 100}% coverage. (Default: 0.05 - 95% coverage).
+#' @param ... Additional arguments to \code{fixedLassoInf()} (see the \code{selectiveinference} package).
+#' @return A list of class \code{slcmaFLI} providing the output for fixed lasso inference
 #'
 #' @export
 slcmaFLI <- function(x, step, alpha=0.05, ...) {
@@ -512,13 +512,11 @@ slcmaFLI <- function(x, step, alpha=0.05, ...) {
 #'
 #' Print method for class \code{slcmaFLI} (adapted from \code{selectiveinference} package).
 #'
-#' @param x
-#' @param tailarea (Default: TRUE)
-#' @param ...
-#' @return
+#' @param x Object of class \code{slcmaFLI} from the \code{slcmaFLI} function.
+#' @param tailarea Print tail areas of confidence intervals (Default: TRUE)
 #'
 #' @export
-print.slcmaFLI <- function (x, tailarea = TRUE, ...) 
+print.slcmaFLI <- function (x, tailarea = TRUE) 
 {
   if(!is.null(x$sigma)) {
     cat(sprintf("\nStandard deviation of noise (specified or estimated) sigma = %0.3f\n", 
@@ -554,13 +552,15 @@ print.slcmaFLI <- function (x, tailarea = TRUE, ...)
 #'
 #' Function for max-|t| test and associated confidence intervals
 #'
-#' @param x
-#' @param alpha (Default: 0.05)
-#' @param do.CI (Default: FALSE)
-#' @param search.wdith (Default: 3)
-#' @param seed (Default: 12345)
-#' @param ...
-#' @return
+#' @param x Object of class \code{slcma} from the \code{slcma()} function.
+#' @param alpha Level of significance for confidence interval calculations. Confidence
+#' intervals will have \code{(1 - alpha) * 100}% coverage. (Default: 0.05 - 95% coverage)
+#' @param do.CI Logical, indicating whether confidence intervals should be calculated. (Default: TRUE).
+#' @param search.width Width of initial interval used in numerical estimation of the confidence intervals,
+#' in multiples of the width of the naive confidence interval. (Default: 3).
+#' @param seed Integer input to \code{set.seed} to ensure that output of \code{pmvt} is reproducible. (Default: 12345)
+#' @param ... Additional arguments to be passed to \code{pmvt}
+#' @return A list of class \code{slcmaMaxt} providing the output for the max-|t| test
 #'
 #' @export
 slcmaMaxt <- function(x, alpha=0.05, do.CI=TRUE, search.width=3, seed=12345, ...) {
@@ -612,7 +612,7 @@ slcmaMaxt <- function(x, alpha=0.05, do.CI=TRUE, search.width=3, seed=12345, ...
 #' 
 #' Print method for objects of class \code{slcmaMaxt}.
 #'
-#' @param x
+#' @param x Object of class \code{slcmaMaxt} from the \code{slcmaMaxt} function.
 #'
 #' @export
 print.slcmaMaxt <- function (x) {
@@ -657,7 +657,17 @@ P6 <- function(beta0, r, p, selection, s, XtX, df, ...) {
 }
 
 
-# A function for simple confidence interval calculations
+#' Relaxed lasso inference
+#'
+#' Function for simple (naive) confidence interval calculations
+#'
+#' @param x Object of class \code{slcma} from the \code{slcma()} function.
+#' @param step Integer specifying which step of the LARS procedure produces 
+#' the model on which inference is to be performed.
+#' @param alpha Level of significance for confidence interval calculations. Confidence
+#' intervals will have \code{(1 - alpha) * 100}% coverage. (Default: 0.05 - 95% coverage)
+#'
+#' @export
 slcmaRelax <- function(x, step, alpha=0.05) {
   if(step<0 | abs(step-round(step)) > .Machine$double.eps^0.5) {
     stop("'step' is not a non-negative integer")
@@ -696,7 +706,7 @@ slcmaRelax <- function(x, step, alpha=0.05) {
 #'
 #' Print method for objects of class \code{slcmaRelax}
 #'
-#' @param x
+#' @param x Object of class \code{slcmaRelax} from the \code{slcmaRelax} function.
 #'
 #' @export
 print.slcmaRelax <- function (x) {
@@ -717,6 +727,13 @@ print.slcmaRelax <- function (x) {
   invisible()
 }
 
+#' Bayesian inference
+#'
+#' Function for calculating the posterior probability that the first-selected variable is the most important
+#'
+#' @param x Object of class \code{slcma} from the \code{slcma()} function.
+#'
+#' @export
 slcmaBayes <- function(x) {
   y_resid <- x$y_resid
   X_hypos <- x$X_hypos
@@ -735,7 +752,13 @@ slcmaBayes <- function(x) {
   Bayes
 }
 
-# Print method for class "slcmaBayes"
+#' Print slcmaBayes
+#'
+#' Print method for objects of class \code{slcmaBayes}
+#'
+#' @param x Object of class \code{slcmaBayes} from the \code{slcmaBayes} function.
+#'
+#' @export
 print.slcmaBayes <- function (x) {
   cat("\nPosterior probabilities:")
   cat("", fill=TRUE)
