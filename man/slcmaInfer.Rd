@@ -10,6 +10,7 @@ slcmaInfer(
   method = "slcmaFLI",
   alpha = 0.05,
   do.maxtCI = FALSE,
+  search.width = 3,
   ...
 )
 }
@@ -27,6 +28,9 @@ intervals will have \code{(1 - alpha) * 100}\% coverage. (Default: 0.05 - 95\% c
 
 \item{do.maxtCI}{Logical, indicating whether confidence intervals should be 
 calculated for the max-|t| test. (Default: FALSE).}
+
+\item{search.width}{Width of initial interval used in numerical estimation of the confidence intervals
+related to the max-|t| test, in multiples of the width of the naive confidence interval. (Default: 3).}
 
 \item{...}{Additional arguments to \code{fixedLassoInf()} (see the \code{selectiveinference} package).}
 }
