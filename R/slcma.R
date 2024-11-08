@@ -1,7 +1,7 @@
 #### Draft slcma R package
-#### Version 0.8
+#### Version 0.9
 #### Andrew Smith
-#### 27 October 2023
+#### 31 July 2024
 
 
 #' Specifying hypotheses
@@ -101,7 +101,6 @@ MI2dummy <- function(formula, data, seed=1) {
   }
 
   complete_data <- complete(data, action="stacked")
-  n <- dim(complete_data)[1] / data$m
 
   trms <- terms(formula, data=complete_data, keep.order=TRUE)
   mf <- model.frame(trms, data=complete_data)
@@ -119,6 +118,7 @@ MI2dummy <- function(formula, data, seed=1) {
     assign <- c(assign,-1)
     varnames <- c(varnames,as.character(formula[[2]]))
   }
+  n <- dim(X)[1] / data$m
 
   Xt1 <- t(X) %*% rep(1,n*data$m) / data$m
   XtX <- t(X) %*% X / data$m
@@ -208,7 +208,7 @@ slcma <- function(formula, data=environment(formula), adjust=NULL, seed=1, silen
   if("mids" %in% class(data)) {
     dummy <- MI2dummy(formula, data, seed=seed)
     y <- dummy[,attributes(dummy)$assign==-1]
-    mm <- as.matrix(cbind(`(Intercept)`=rep(1,dim(dummy)[1]), dummy[,attributes(dummy)$assign!=-1]))
+    mm <- as.matrix(cbind(`(Intercept)`=rep(1,dim(dummy)[1]), dummy[,attributes(dummy)$assign!=-1, drop=FALSE]))
     assign <- c(0, attributes(dummy)$assign[attributes(dummy)$assign!=-1])
     r <- assign %in% c(0, adjust)
   } else {
@@ -219,8 +219,8 @@ slcma <- function(formula, data=environment(formula), adjust=NULL, seed=1, silen
   
   sanity <- data.frame(Term=colnames(mm),
                        Role=factor(r, levels=c(T,F), labels=c("Adjusted for in all models","Available for variable selection")))
+  if(!silent) print(sanity, row.names=FALSE)
   if(all(r)) {
-    if(!silent) print(sanity, row.names=FALSE)
     stop("No variables available for selection - alter 'formula' and/or 'adjust'")
   }
 
@@ -229,7 +229,8 @@ slcma <- function(formula, data=environment(formula), adjust=NULL, seed=1, silen
   
   adjust_model <- lm(y ~ covars)
   y_resid <- adjust_model$residuals         # even if no covariates, this makes y_resid have mean zero
-  X_hypos <- lm(X_hypos ~ covars)$residuals # even if no covariates, this makes every column of X_hypos have mean zero
+  X_hypos <- as.matrix(lm(X_hypos ~ covars)$residuals) # even if no covariates, this makes every column of X_hypos have mean zero
+  colnames(X_hypos) <- colnames(mm)[!r]
   base.r.squared <- 1 - sum(y_resid^2)/sum((y-mean(y))^2)
   adjust.df <- adjust_model$rank - 1 
   
@@ -253,7 +254,6 @@ slcma <- function(formula, data=environment(formula), adjust=NULL, seed=1, silen
                  multiple=multiple,
                  fit=fit)
   class(output) <- "slcma"
-  if(!silent) print(sanity, row.names=FALSE)
   invisible(output)
 }
 
@@ -385,11 +385,13 @@ plot.slcma <- function(x, relax=FALSE, show.remove=FALSE, show.labels=TRUE, labe
 #' intervals will have \code{(1 - alpha) * 100}\% coverage. (Default: 0.05 - 95\% coverage).
 #' @param do.maxtCI Logical, indicating whether confidence intervals should be 
 #' calculated for the max-|t| test. (Default: FALSE).
+#' @param search.width Width of initial interval used in numerical estimation of the confidence intervals
+#' related to the max-|t| test, in multiples of the width of the naive confidence interval. (Default: 3).
 #' @param ... Additional arguments to \code{fixedLassoInf()} (see the \code{selectiveinference} package).
 #' @return An list of class \code{slcmaInfer} with one element providing the output for each inference method.
 #' 
 #' @export
-slcmaInfer <- function(x, step=1L, method="slcmaFLI", alpha=0.05, do.maxtCI=FALSE, ...) {
+slcmaInfer <- function(x, step=1L, method="slcmaFLI", alpha=0.05, do.maxtCI=FALSE, search.width=3, ...) {
   if(step<0 | abs(step-round(step)) > .Machine$double.eps^0.5) {
     stop("'step' is not a non-negative integer")
   }
@@ -411,7 +413,7 @@ slcmaInfer <- function(x, step=1L, method="slcmaFLI", alpha=0.05, do.maxtCI=FALS
     if(step == 0 | step > 1) {
       stop("max-|t| test is only available at Step 1")
     }
-    maxt <- slcmaMaxt(x, alpha=alpha, do.CI=do.maxtCI)
+    maxt <- slcmaMaxt(x, alpha=alpha, do.CI=do.maxtCI, search.width=search.width)
     output$maxt <- maxt
   }
   if(any(c("relaxed","relax","slcmaRelax") %in% method)) {
@@ -555,12 +557,13 @@ print.slcmaFLI <- function (x, tailarea = TRUE, ...)
 #' @param x
 #' @param alpha (Default: 0.05)
 #' @param do.CI (Default: FALSE)
+#' @param search.wdith (Default: 3)
 #' @param seed (Default: 12345)
 #' @param ...
 #' @return
 #'
 #' @export
-slcmaMaxt <- function(x, alpha=0.05, do.CI=TRUE, seed=12345, ...) {
+slcmaMaxt <- function(x, alpha=0.05, do.CI=TRUE, search.width=3, seed=12345, ...) {
   # assumes that X and y have mean subtracted from them, which should have happened by default
   y_resid <- x$y_resid
   X_hypos <- x$X_hypos
@@ -587,7 +590,7 @@ slcmaMaxt <- function(x, alpha=0.05, do.CI=TRUE, seed=12345, ...) {
                  error = attributes(p.maxt)$error, msg = attributes(p.maxt)$msg, alpha = alpha)
   if(do.CI) {
     search_middle <- r
-    search_radius <- 3*qnorm(1-alpha/2)*s*sqrt(XtX[selection,selection])
+    search_radius <- search.width*qnorm(1-alpha/2)*s*sqrt(XtX[selection,selection])
     lower <-  uniroot(function(beta0) {
                         P6(beta0, beta0+abs(r-beta0), p, selection, s, XtX, p, d, ...) -
                         P6(beta0, beta0-abs(r-beta0), p, selection, s, XtX, p, d, ...) -
