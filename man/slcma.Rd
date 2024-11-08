@@ -15,13 +15,12 @@ slcma(
 }
 \arguments{
 \item{formula}{An object of class \code{formula} which specifies the
-SLCMA model including outcome variable, exposures
-and lifecourse hypotheses.}
+SLCMA model including outcome variable, lifecourse hypotheses and exposures.}
 
 \item{data}{An optional data frame, list or environment
 containing the variables in the model. If not found in \code{data},
 the variables are taken from \code{environment(formula)}, typically
-the environment form which the function is called.}
+the environment from which the function is called.}
 
 \item{adjust}{A numerical vector containing the position of terms to
 be adjusted for in all models. (Default: NULL - no adjustment).}
