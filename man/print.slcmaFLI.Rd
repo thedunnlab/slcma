@@ -4,10 +4,12 @@
 \alias{print.slcmaFLI}
 \title{Print slcmaFLI output}
 \usage{
-\method{print}{slcmaFLI}(x, tailarea = TRUE, ...)
+\method{print}{slcmaFLI}(x, tailarea = TRUE)
 }
 \arguments{
-\item{tailarea}{(Default: TRUE)}
+\item{x}{Object of class \code{slcmaFLI} from the \code{slcmaFLI} function.}
+
+\item{tailarea}{Print tail areas of confidence intervals (Default: TRUE)}
 }
 \description{
 Print method for class \code{slcmaFLI} (adapted from \code{selectiveinference} package).
