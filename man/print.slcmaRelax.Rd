@@ -7,7 +7,7 @@
 \method{print}{slcmaRelax}(x)
 }
 \arguments{
-\item{x}{}
+\item{x}{Object of class \code{slcmaRelax} from the \code{slcmaRelax} function.}
 }
 \description{
 Print method for objects of class \code{slcmaRelax}
