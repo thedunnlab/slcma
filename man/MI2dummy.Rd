@@ -10,8 +10,7 @@ MI2dummy(formula, data, seed = 1)
 \item{formula}{An object of class \code{formula} that specifies all terms
 to be included in the dataset.}
 
-\item{data}{An object of class \code{mids} containing the variables
-optional data frame, list or environment specified in \code{formula}.}
+\item{data}{An object of class \code{mids} containing the variables specified in \code{formula}.}
 
 \item{seed}{Integer input to \code{set.seed} to ensure that
 dataset generation is reproducible (Default: 1).}
