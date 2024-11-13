@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Andrew Smith" />
+
+<meta name="date" content="2024-11-08" />
+
+<title>Examples demonstrating slcma R package v0.9</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Examples demonstrating slcma R package
+v0.9</h1>
+<h4 class="author">Andrew Smith</h4>
+<h4 class="date">08 November 2024</h4>
+
+
+
+<div id="getting-started" class="section level2">
+<h2>Getting started</h2>
+<p>Load the library.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(slcma)</span></code></pre></div>
+<pre><code>## Loading required package: lars</code></pre>
+<pre><code>## Loaded lars 1.3</code></pre>
+<pre><code>## Loading required package: selectiveInference</code></pre>
+<pre><code>## Warning: package &#39;selectiveInference&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Loading required package: glmnet</code></pre>
+<pre><code>## Warning: package &#39;glmnet&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Loading required package: Matrix</code></pre>
+<pre><code>## Loaded glmnet 4.1-8</code></pre>
+<pre><code>## Loading required package: intervals</code></pre>
+<pre><code>## Warning: package &#39;intervals&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## 
+## Attaching package: &#39;intervals&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:Matrix&#39;:
+## 
+##     expand</code></pre>
+<pre><code>## Loading required package: survival</code></pre>
+<pre><code>## Loading required package: adaptMCMC</code></pre>
+<pre><code>## Warning: package &#39;adaptMCMC&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Loading required package: parallel</code></pre>
+<pre><code>## Loading required package: coda</code></pre>
+<pre><code>## Warning: package &#39;coda&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Loading required package: MASS</code></pre>
+<pre><code>## Loading required package: mice</code></pre>
+<pre><code>## Warning: package &#39;mice&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Warning in check_dep_version(): ABI version mismatch: 
+## lme4 was built with Matrix ABI version 1
+## Current Matrix ABI version is 0
+## Please re-install lme4 from source or restore original &#39;Matrix&#39; package</code></pre>
+<pre><code>## 
+## Attaching package: &#39;mice&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:stats&#39;:
+## 
+##     filter</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     cbind, rbind</code></pre>
+<pre><code>## Loading required package: mvtnorm</code></pre>
+<pre><code>## Warning: package &#39;mvtnorm&#39; was built under R version 4.2.3</code></pre>
+</div>
+<div id="example-1.-slcma" class="section level2">
+<h2>Example 1. SLCMA</h2>
+<p>Generate some data that matches that seen in Mishra et al (2009).
+This is the code supplied in Smith et al (2015).</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">141</span>,<span class="dv">20</span>,<span class="dv">88</span>,<span class="dv">80</span>,<span class="dv">40</span>,<span class="dv">35</span>,<span class="dv">317</span>,<span class="dv">367</span>)</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>BMI <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">28.7</span>,<span class="fl">27.5</span>,<span class="fl">29.1</span>,<span class="fl">27.8</span>,<span class="fl">28.3</span>,<span class="fl">27.1</span>,<span class="fl">27.6</span>,<span class="fl">26.0</span>)</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>SE <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.5</span>,<span class="fl">1.1</span>,<span class="fl">0.7</span>,<span class="fl">0.7</span>,<span class="fl">0.8</span>,<span class="fl">0.9</span>,<span class="fl">0.3</span>,<span class="fl">0.2</span>)</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>S1 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">0</span>,<span class="dv">1</span>)</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>S2 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">1</span>)</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>S3 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>)</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">rep</span>(S1,N)</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">rep</span>(S2,N)</span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>x3 <span class="ot">&lt;-</span> <span class="fu">rep</span>(S3,N)</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>epsilon <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="fu">sum</span>(N))</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>e <span class="ot">&lt;-</span> <span class="fu">lm</span>(epsilon <span class="sc">~</span> x1 <span class="sc">*</span> x2 <span class="sc">*</span> x3)<span class="sc">$</span>residuals</span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">rep</span>(BMI,N) <span class="sc">+</span> <span class="fu">rep</span>(SE<span class="sc">*</span><span class="fu">sqrt</span>(N),N) <span class="sc">*</span> e<span class="sc">/</span><span class="fu">sd</span>(e)</span></code></pre></div>
+<p>As in Smith et al (2015), perform SLCMA with</p>
+<ul>
+<li><p>3 critical periods (early, middle, late)</p></li>
+<li><p>Accumulation</p></li>
+<li><p>Early-middle mobility (up and down)</p></li>
+<li><p>Middle-late mobility (up and down)</p></li>
+</ul>
+</div>
+<div id="lars-stage-1" class="section level2">
+<h2>LARS (stage 1)</h2>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>myslcma <span class="ot">&lt;-</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slcma</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 <span class="sc">+</span> <span class="fu">Accumulation</span>(x1,x2,x3) <span class="sc">+</span> <span class="fu">Mobility</span>(x1,x2) <span class="sc">+</span> <span class="fu">Mobility</span>(x2,x3))</span></code></pre></div>
+<pre><code>##                      Term                             Role
+##               (Intercept)       Adjusted for in all models
+##                        x1 Available for variable selection
+##                        x2 Available for variable selection
+##                        x3 Available for variable selection
+##  Accumulation(x1, x2, x3) Available for variable selection
+##        Mobility(x1, x2)up Available for variable selection
+##      Mobility(x1, x2)down Available for variable selection
+##        Mobility(x2, x3)up Available for variable selection
+##      Mobility(x2, x3)down Available for variable selection</code></pre>
+<p>Get a summary of the SLMCA, to see what variables are added at which
+stage. This is more meaningful that the usual output of lars.</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(myslcma)</span></code></pre></div>
+<pre><code>## 
+## Summary of LARS procedure
+##  Step        Variable selected Variable removed Variables R-squared
+##     0                                                   0     0.000
+##     1 Accumulation(x1, x2, x3)                          1     0.022
+##     2                       x1                          2     0.027
+##     3     Mobility(x2, x3)down                          3     0.038
+##     4                       x3                          4     0.039
+##     5       Mobility(x1, x2)up                          5     0.040
+##     6                                        x3         4     0.041
+##     7     Mobility(x1, x2)down                          5     0.041</code></pre>
+</div>
+<div id="elbow-plots" class="section level2">
+<h2>Elbow plots</h2>
+<p>Default plot</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(myslcma)</span></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>For diagnostic purposes, can also show the part of the elbow plot
+after variables get removed and others added in.</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(myslcma, <span class="at">show.remove=</span><span class="cn">TRUE</span>, <span class="at">show.labels=</span><span class="cn">FALSE</span>)</span></code></pre></div>
+<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASAAAAEgCAMAAAAjXV6yAAAAY1BMVEUAAAAAADoAAGYAOjoAOpAAZrY6AAA6ADo6AGY6Ojo6kNtmAABmADpmkJBmtv+QOgCQZgCQkGaQtpCQ2/+2ZgC225C2/7a2///bkDrbkJDb/9vb////tmb/25D//7b//9v///8JFg5jAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAK8UlEQVR4nO2djXbbuBGFr7Ox29jpultrG7Yr2Xz/p1wC/BEVi8AMMcAdneg7JwkDXg6uRiAIkqCI/k4SsA14B2wD3gHbgHfANuAdsA14B2wD3gHbgHfANuAdsA14B2wD3gHbgHfANuAdsA14B2wD3gHbgHfANuAdsA14B2wD3gHbgHfANuAdsA14B2wD3gHbgHfANuAdsA14B2wD3gHbgHfANuAdsA14B2wD3gHbgHfANuAdsA14B2wD3gHbgHfANuAdsA14B2wD3gHbgHfANuAdsA14B2wD3gHbgHfANuAdsA14B2wD3gHbgHfANuAdsA14B2wD3gHbgHfANuAdsA14B2wD3gHbgHfANuAdsA14B2wD3gHbgHfANuAdsA14B2wD3gHbgHfANuAdsA14B2wD3gHbgHfANuAdsA14Bzu2OT39bm3DL1Bo31+w8OVHLUfOgEZ8xHP4596CNnl/+frXPUFJDg9v9wQl6fB8T1CS09Nv9wQl+XjFPUG7w90MdRI0NJ7I5ihIF44IzIWBbhwHLQOiwnBMYC7sQ/tZ0tKF8VBhOCowF/ZhmLh0zseNnSzs2/w/+f6nTh90Uy0o0x1fLy0RBrr5+P5zH6Q/ODTkqjlsiD9vraprPp/faD+eWtBnLtIE8VbGJmzDFZEc+eDqJteiGJuyDSerc7MrTm0kjr7PVLd1FNsXToUqEZtBzIWUcPWqEEexqa5WuHo1iMMY1VcpXL0KxHF0FdJPVs3iiwOpamSfrBqOQ8WRNFWyTzUsg4tjaSqVnKwqwmkxjS0OpqmV24JsQ4ujqardPFndF06FcWRxuFEovanMO1m1DiyOdxaOreL48NakXnZcccBF+PH6GP/d6l2M62WHFUdchPMhauv4ZFwvO6o45CKcD1EHdy2oymVKccyz8BgPUZ27PqhCSE3UlTAeooraD7WzqBTWuH7jcA4Oi8YGjMM5GFethMMu9vWvw8YQ2bpeSrg9kc/CYYg4jIHeX4oyJK6XEG1f6EUYDvNhkLh1Od643ubB9sZehGGgGBK0a6BY5c6qZaz9wRfh3IK8DBQr38UWRz8Lxz6oK5teJ663WaDS+CthHCiWDaTb33SoXoFY2DScURiLGhbh6npqi3obRLGpYhGursi3qDcVwyJIthK9sOxCkLbe7QjlIUTVqIXLZWnqQLFRem60k245g09ck1hYPVzD7PS7EjTvY6ldrBvWx77cegJV8+mf4urOwuEco3tMPwsWrse+v4S7H7YJap2dfl8n/dwfw9n89rnYOFT6eE2c84vrXW+zZ6NSxHUuwjAOOv3zR/yzwTxUCm3NKkGsqdXiWhdhaB7v399SCVoG24dHowSRstPv6oPCZz48J++szmkZ+nODBFHn5YurXgkPj4lPPjJfDPl4LU4QMzu9/3EQOT3eE0RPT7VzMZtZrmJzFcFeYfKc3miWq0hUGewWHh43tUZzFCWa6mC3MNGEjGa5SjTVwW5h4sahTQsSSBqAvcLxXHQDk0cyxdaqArUwO4FVJMrXK3ZWF5gLjcIZ17cbmAuNwhnXtxuohbofKNt7Ni/2VRvohdMkzrr35nPrmwG18ON1zEzVieSZ1Q2BWhgulgWqTiTPrG4I1MK5BSXnBxWerIpd1Qd64fgYS3IieeHJqthUA7BDmJ1IXnqqITbVAJgL++KTVU1V1YG5sC9uQZqqqgO9MNw57NL7WNEjmWJLTYBeOBy+Tk+PqQtmZSerYktNgFoYOpgwmK41DhI7agPUwpCgw5CcSjPtxYYaAb3w8Bh+DDl5waygXrGhRkAvHPqXh7f50V7resV+WgFzYVk442rKwS5h+VzpjXo3iolgl/CeoIywVoKul1LBLmGlBF0tJINdwnuCJML/WT9xKPbSEmiF3XSZcHPu2P56xV5aAqUwXE4MF1uP2DpP312v2EpToBPGAfRwNtZVeOJQbKUp0Anj0/Ifr99QdqJxrV6xk7ZAJxwvph7Kdq+r9YqNNAY64ZSgwp9+uVav2EhjoBNOCSrdwT7XK/bRGuiE9wRlhLUSJLbRHOiEZi/nQ/K/joC5MKK8N68L3hSYCwPKe/Oq2I2BubDX31nVxG4NzIW9+t68JnRzYC7s1S1IE7o5MBcGVPfmVZGbA3NhRHNvXhe5NTAXasMZB7YG5kJlOOO45sBcGJEPFHVx2wNzYUA+UFSFZQBzYa86zGvCUoC5sNcMFDVROcBc2GtakCYqB5gLA9InDlVBOcBcGLnpl0BeAHMhJVw9YC6khKsHzIWXMF8CaQLMhcJwNwMpQbKgmfVlq0s3L5PbBM2sL1tNTVD2ZFUWNLO+bDUzQfmTVVnQzPqy1cQECU41ZEEz68tWExMkOFmVBc2sL1t9b0F1oxfJ83c1ZEEz68tWU49iot/Q+ZUT9AsCtgHvgG3AO2Ab8A7YBrwDtgHvgG3AO2Ab8A7YBrwDtgHvgG3AO2Ab8A7YBrwD84jH7IsSE6/uGK96J66ldPnXMCae6hqvRqgeSYFGLCE8/XpMfob3l9RPVg+bdtsfIdywTEcfvqDtBJ3+oX7iFNoNMoxXHVPPDR1TN0XGdy9t/obR9Oho5keythO049ejoN0gQ+YTxouRWZvpNpJOUPf139sJ6vQPfEG9RZqxEadTkE3QIf16mFT6hvoTfdDhW7qHuwJU6jzjl59uArkEJa94p5/sD3v4doLCT2z1ve6N8dCIBRgk6Jg5zMQXnG0geVu1riOCQiuhfBfL3DHpU+mPtecSlHwJ3yeg0ErIdtK99O0vuTqubzySzIDuWA+FVkL+MJ9OUPoX0cfUZPaR7RYk2vwnoNCKyA8UUw5PT+n2Ez587leOUkex8MVxO2nJyUAiQdM+sh3gkNuB0n2QYPOfgEr9CwK2Ae+AbcA7YBvwDtgGvAO2Ae+AbcA7YBvwDtgGvAO2Ae+AbcA7YBvwDtgGvAO2Ae+AbcA7YBvwDtgGvAO2Ae+AbcA7YBvwDtgGvAO2Ae+AbcA7YBvwDtgGvAO2Ae+AbcA7qF7D8jKcT3MLV8/hr+a0XJSmuCo8firLzKTIgZKNZRyn6QJHwcyWvjBBV8r8J2h+8WZ65tcvnKBp0mqc4zzPP3n//ge+/Hd6H0wsOT396ynOz4yfsZtmo56ezvNVluVp5YUwLjwGyfA1rAsf/vCfoGliVzAaZjCFabxxvmn8hHPJ6Sn+9RxLu2k5bjntmstyd0U4BX0ekzYXhm/mWPg+J1hkIMPYO4c97P372/hJY3MKn2YpGeeWdV9+DKVjYzt++bGeajUvLyvXwnFhCjkXjl/MwX+C4pzOpY85hv0kftNzhxFLlmY2lI7dxlCyfqxjXl6tPAvn6PGN1XPhmNIb6IPGnSG6DS/C+/NpnaC5ZJx7OvwdPvcyWTU+/DNldlpeVq6F88zV8ZXeU2F3Mwkadq//x90sftGndYKWks8taNl49b9heVm5Fn5uQf28U95Ego4P/zlPMD+ud7GlZOqDwuu4f788WK//t155ubzug5bDXjzm3UKCPl6/xUHQ2HjwfNmCYkk8is25ix9qbi1TE1iW55VrYVwYDgYxUReFt3AU68/z5+Mc4enDLX1QLBnHQatSjG3rPCd4WZ5WXgjHcVAYVU3joLnwFsZBNw3YBrwDtgHvgG3AO2Ab8A7YBrwDtgHvgG3AO2Ab8A7YBrwDtgHvgG3AO2Ab8A7YBrwDtgHvgG3AO2Ab8A7YBrwDtgHvgG3AO2Ab8A7YBrwDtgHvgG3AO38DByp62I77X8gAAAAASUVORK5CYII=" /><!-- --></p>
+<p>Sometimes it is more helpful to show an alternative elbow plot with
+the R2 from the relaxed lasso.</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(myslcma, <span class="at">relax=</span><span class="cn">TRUE</span>)</span></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>Can add your own labels to the elbow plot</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(myslcma, <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">&quot;Early critical period&quot;</span>,<span class="st">&quot;Middle critical period&quot;</span>,<span class="st">&quot;Late critical period&quot;</span>,</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>                         <span class="st">&quot;Accumulation&quot;</span>,<span class="st">&quot;Early-middle mobility (up)&quot;</span>,<span class="st">&quot;Early-middle mobility (down)&quot;</span>,</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>                         <span class="st">&quot;Middle-late mobility (up)&quot;</span>, <span class="st">&quot;Middle-late mobility (down)&quot;</span>))</span></code></pre></div>
+<pre><code>##                         Label                     Term
+##         Early critical period                       x1
+##        Middle critical period                       x2
+##          Late critical period                       x3
+##                  Accumulation Accumulation(x1, x2, x3)
+##    Early-middle mobility (up)       Mobility(x1, x2)up
+##  Early-middle mobility (down)     Mobility(x1, x2)down
+##     Middle-late mobility (up)       Mobility(x2, x3)up
+##   Middle-late mobility (down)     Mobility(x2, x3)down</code></pre>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>Or if you can’t remember all the variable names, and just want to
+label the ones that appear on the plot.</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(myslcma, <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">&quot;Accumulation&quot;</span>,<span class="st">&quot;Early critical period&quot;</span>,<span class="st">&quot;Middle-late mobility (down)&quot;</span>,</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>                         <span class="st">&quot;Late critical period&quot;</span>, <span class="st">&quot;Early-middle mobility (up)&quot;</span>), <span class="at">selection.order=</span><span class="cn">TRUE</span>)</span></code></pre></div>
+<pre><code>##                        Label                     Term
+##                 Accumulation Accumulation(x1, x2, x3)
+##        Early critical period                       x1
+##  Middle-late mobility (down)     Mobility(x2, x3)down
+##         Late critical period                       x3
+##   Early-middle mobility (up)       Mobility(x1, x2)up
+##                           x3                       x3
+##         Mobility(x1, x2)down     Mobility(x1, x2)down</code></pre>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>The function provides a sanity check so you can compare the default
+labels with the user-defined labels.</p>
+</div>
+<div id="inference-stage-2" class="section level2">
+<h2>Inference (stage 2)</h2>
+<p>Maybe there is an elbow at Step 3, perform selective inference by
+default</p>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">slcmaInfer</span>(myslcma, <span class="dv">3</span>)</span></code></pre></div>
+<pre><code>## Warning in lsfit(x, y, intercept = oo): &#39;X&#39; matrix was collinear</code></pre>
+<pre><code>## 
+## Inference for model at Step 3 of LARS procedure
+## 
+## Number of selected variables: 3
+## R-squared from lasso fit: 0.038
+## 
+## Results from fixed lasso inference (selective inference):
+## 
+## Standard deviation of noise (specified or estimated) sigma = 5.228
+## 
+## Testing results at lambda = 5.553, with alpha = 0.050
+## 
+##                            Coef P-value  CI.lo  CI.up LoTailArea UpTailArea
+## x1                       -0.778   0.156 -1.701  0.839      0.025      0.025
+## Accumulation(x1, x2, x3) -0.608   0.010 -1.242 -0.102      0.024      0.024
+## Mobility(x2, x3)down      1.196   0.050 -0.274  2.196      0.025      0.024</code></pre>
+<p>We have the option to report the results of the relaxed lasso
+instead</p>
+<div class="sourceCode" id="cb44"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">slcmaInfer</span>(myslcma, <span class="dv">3</span>, <span class="at">method=</span><span class="st">&quot;relax&quot;</span>)</span></code></pre></div>
+<pre><code>## 
+## Inference for model at Step 3 of LARS procedure
+## 
+## Number of selected variables: 3
+## R-squared from lasso fit: 0.038
+## 
+## Results from relaxed lasso:
+## 
+## R-squared from relaxed lasso fit: 0.040
+## 
+##                                Coef        SE      CI.lo      CI.up
+## x1                       -0.7781529 0.4636716 -1.6869326  0.1306268
+## Accumulation(x1, x2, x3) -0.6082188 0.2315857 -1.0621184 -0.1543192
+## Mobility(x2, x3)down      1.1962127 0.5057243  0.2050114  2.1874141</code></pre>
+<p>We have the option of trying the max-|t| test, but only at Step
+1.</p>
+<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">slcmaInfer</span>(myslcma, <span class="dv">1</span>, <span class="at">method=</span><span class="st">&quot;maxt&quot;</span>)</span></code></pre></div>
+<pre><code>## 
+## Inference for model at Step 1 of LARS procedure
+## 
+## Number of selected variables: 1
+## R-squared from lasso fit: 0.022
+## 
+## Results from max-|t| test:
+## 
+## Error standard deviation: 5.220 on 1082 degrees of freedom
+## 
+##                                Coef      P-value
+## Accumulation(x1, x2, x3) -0.9641575 5.573048e-09
+## 
+## Message regarding calculation of P-value: Normal Completion
+##  with estimated numeric absolute error: 2.779804e-09</code></pre>
+<p>We can also get confidence intervals from the max-|t| test, but these
+are time-consuming so they are not produced by default</p>
+<div class="sourceCode" id="cb48"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="fu">slcmaInfer</span>(myslcma, <span class="dv">1</span>, <span class="at">method=</span><span class="st">&quot;maxt&quot;</span>, <span class="at">do.maxtCI=</span><span class="cn">TRUE</span>)</span></code></pre></div>
+<pre><code>## 
+## Inference for model at Step 1 of LARS procedure
+## 
+## Number of selected variables: 1
+## R-squared from lasso fit: 0.022
+## 
+## Results from max-|t| test:
+## 
+## Error standard deviation: 5.220 on 1082 degrees of freedom
+## Confidence interval coverage 95.0 percent
+## 
+##                                Coef      P-value     CI.lo      CI.up
+## Accumulation(x1, x2, x3) -0.9641575 5.573048e-09 -1.314742 -0.6408151
+## 
+## Message regarding calculation of P-value: Normal Completion
+##  with estimated numeric absolute error: 2.779804e-09</code></pre>
+<p>We have the option of Bayesian inference, to find the posterior
+probability of the first-selected variable being the most important</p>
+<div class="sourceCode" id="cb50"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="fu">slcmaInfer</span>(myslcma, <span class="dv">1</span>, <span class="at">method=</span><span class="st">&quot;Bayes&quot;</span>)</span></code></pre></div>
+<pre><code>## 
+## Inference for model at Step 1 of LARS procedure
+## 
+## Number of selected variables: 1
+## R-squared from lasso fit: 0.022
+## 
+## Posterior probabilities:
+##                                    
+## x1                       0.01462815
+## x2                       0.00000047
+## x3                       0.00239307
+## Accumulation(x1, x2, x3) 0.98297554
+## Mobility(x1, x2)up       0.00000032
+## Mobility(x1, x2)down     0.00000001
+## Mobility(x2, x3)up       0.00000001
+## Mobility(x2, x3)down     0.00000245</code></pre>
+<p>It is possible to produce results for all inference methods</p>
+<div class="sourceCode" id="cb52"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="fu">slcmaInfer</span>(myslcma, <span class="dv">1</span>, <span class="at">method=</span><span class="fu">c</span>(<span class="st">&quot;selectiveInference&quot;</span>,<span class="st">&quot;relax&quot;</span>,<span class="st">&quot;maxt&quot;</span>,<span class="st">&quot;Bayes&quot;</span>))</span></code></pre></div>
+<pre><code>## Warning in lsfit(x, y, intercept = oo): &#39;X&#39; matrix was collinear</code></pre>
+<pre><code>## 
+## Inference for model at Step 1 of LARS procedure
+## 
+## Number of selected variables: 1
+## R-squared from lasso fit: 0.022
+## 
+## Results from fixed lasso inference (selective inference):
+## 
+## Standard deviation of noise (specified or estimated) sigma = 5.228
+## 
+## Testing results at lambda = 18.578, with alpha = 0.050
+## 
+##                            Coef P-value  CI.lo  CI.up LoTailArea UpTailArea
+## Accumulation(x1, x2, x3) -0.964       0 -1.273 -0.629      0.024      0.024
+## 
+## Results from max-|t| test:
+## 
+## Error standard deviation: 5.220 on 1082 degrees of freedom
+## 
+##                                Coef      P-value
+## Accumulation(x1, x2, x3) -0.9641575 5.573048e-09
+## 
+## Message regarding calculation of P-value: Normal Completion
+##  with estimated numeric absolute error: 2.779804e-09
+## 
+## Results from relaxed lasso:
+## 
+## R-squared from relaxed lasso fit: 0.034
+## 
+##                                Coef        SE     CI.lo      CI.up
+## Accumulation(x1, x2, x3) -0.9641575 0.1567423 -1.271367 -0.6569481
+## 
+## Posterior probabilities:
+##                                    
+## x1                       0.01462815
+## x2                       0.00000047
+## x3                       0.00239307
+## Accumulation(x1, x2, x3) 0.98297554
+## Mobility(x1, x2)up       0.00000032
+## Mobility(x1, x2)down     0.00000001
+## Mobility(x2, x3)up       0.00000001
+## Mobility(x2, x3)down     0.00000245</code></pre>
+</div>
+<div id="example-2.-adjusting-for-covariates" class="section level2">
+<h2>Example 2. Adjusting for covariates</h2>
+<p>Generate some data (this is the code supplied in Smith et al
+(2016)).</p>
+<div class="sourceCode" id="cb55"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">400</span></span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>covariate <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> covariate <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> x1 <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>x3 <span class="ot">&lt;-</span> x2 <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span><span class="fu">rnorm</span>(n)</span>
+<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">2</span><span class="sc">*</span>covariate <span class="sc">+</span> x3 <span class="sc">+</span> <span class="dv">3</span><span class="sc">*</span><span class="fu">rnorm</span>(n)</span></code></pre></div>
+</div>
+<div id="adjust-for-covariates-stage-1" class="section level2">
+<h2>Adjust for covariates (stage 1)</h2>
+<p>Add any covariates into the formula, then use the option adjust = a
+numeric vector containing the position(s) of covariate(s) in the
+formula. Here there is one covariate (called ‘covariate’) and it is in
+the 8th position after the ~. Hence adjust=8.</p>
+<div class="sourceCode" id="cb56"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>slcmaAdjust <span class="ot">&lt;-</span></span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slcma</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 <span class="sc">+</span> <span class="fu">Accumulation</span>(x1,x2,x3) <span class="sc">+</span> <span class="fu">Change</span>(x1,x2) <span class="sc">+</span> <span class="fu">Change</span>(x2,x3) <span class="sc">+</span> <span class="fu">Change</span>(x1,x3) <span class="sc">+</span> covariate,</span>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">adjust=</span><span class="dv">8</span>)</span></code></pre></div>
+<pre><code>##                      Term                             Role
+##               (Intercept)       Adjusted for in all models
+##                        x1 Available for variable selection
+##                        x2 Available for variable selection
+##                        x3 Available for variable selection
+##  Accumulation(x1, x2, x3) Available for variable selection
+##            Change(x1, x2) Available for variable selection
+##            Change(x2, x3) Available for variable selection
+##            Change(x1, x3) Available for variable selection
+##                 covariate       Adjusted for in all models</code></pre>
+<p>The function provides a sanity check so you can check the variables
+have the desired roles</p>
+<p>You can revisit the sanity check</p>
+<div class="sourceCode" id="cb58"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>slcmaAdjust<span class="sc">$</span>sanity</span></code></pre></div>
+<pre><code>##                       Term                             Role
+## 1              (Intercept)       Adjusted for in all models
+## 2                       x1 Available for variable selection
+## 3                       x2 Available for variable selection
+## 4                       x3 Available for variable selection
+## 5 Accumulation(x1, x2, x3) Available for variable selection
+## 6           Change(x1, x2) Available for variable selection
+## 7           Change(x2, x3) Available for variable selection
+## 8           Change(x1, x3) Available for variable selection
+## 9                covariate       Adjusted for in all models</code></pre>
+<p>Can summarize and produce plots as before</p>
+<div class="sourceCode" id="cb60"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(slcmaAdjust) </span></code></pre></div>
+<pre><code>## 
+## Summary of LARS procedure
+##  Step        Variable selected Variable removed Variables Partial R-squared
+##     0                                                   0             0.000
+##     1                       x3                          1             0.316
+##     2 Accumulation(x1, x2, x3)                          2             0.359
+##     3           Change(x1, x2)                          3             0.360</code></pre>
+<div class="sourceCode" id="cb62"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(slcmaAdjust)</span></code></pre></div>
+<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASAAAAEgCAMAAAAjXV6yAAAAclBMVEUAAAAAADoAAGYAOpAAZrY6AAA6ADo6AGY6Ojo6OpA6kNtmAABmADpmAGZmOpBmkJBmtttmtv+QOgCQOmaQkGaQtpCQ2/+2ZgC2Zma225C2/7a2///bkDrbkJDb2//b/9vb////tmb/25D//7b//9v////YAeDHAAAACXBIWXMAAA7DAAAOwwHHb6hkAAALYUlEQVR4nO2diXbjNhJF2W57JpEzSyuLkmkm05Tk///FIVaSbYsPVQBBaPTeObZliutVoVBAAVD3Rq2q2/sGWhcBAREQEAEBERAQAQEREBABAREQEAEBERAQAQEREBABAREQEAEBERAQAQEREBABAREQEAEBERAQAQEREBABAREQEAEBERAQAQEREBABAREQEAEBERAQAQEREBABAREQEAEBERAQAQEREBABAREQEAEBERAQAQEREBABAREQEAEBERAQAQEREBABAREQEAEBERAQAQEREBABAREQEAEBERAQAQEREBABAREQEAEBERAQAQE5QJfXLurp68631JYmCxq6g/n96bf9bqZFRUDX47P923/+ttvNtKgI6PL6xf4dWMQWmlnQwf490YIWmvsgY0J9ng/q7kZyQK4qy7SfulHD9dh1X5L3vvxj5jw0gEqoKqBT1/37qPxIHwDQaPA2LtEFbsoi9vnb6aC42ux0XbWfi/97/fj9Vf/Ta3zQGCKOMdDlNYtQ1SIm9cGmArq8mnCvf5IDMtW8CRL7rDioFqDLAsLC/d6UC2SuR/uQckAmUDSAVIGivPbMkbnO6A9c5G+qsrRbDqHwGOnlWFBeoLg1oPmHMPjPJLWiD6Hw2+lZA8j7oF4QWKyerryyDTR4j9H6NIBcoJjZmN8KUJnSGz7961EFqIQ2AHTTtZk42qhSHBRLaJZK814znJOczPWveObkWwgvgo/PU0FAqFRpIjYXBY2gftY46RIdQWUAJQUMqk90sE621zjp2C29c6CY7I5DF6hMznEd7rSxKqurBlVE4rtI7hCQtCLXmXzoIlEAChfcqYhVaaRMXSQKQKaJ8vx2ftkpkq4D6J+uHaWpxUytOZiG7j5tMc2B5xd96K+Lg85//2p/5JfLbs0rDnSZTmXjURdJX376TQdIft3840LorzN5hQ8ybd3TYZ8i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" /><!-- --></p>
+<p>Can perform inference (stage 2) as before</p>
+<div class="sourceCode" id="cb63"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="fu">slcmaInfer</span>(slcmaAdjust,<span class="dv">1</span>, <span class="at">method=</span><span class="fu">c</span>(<span class="st">&quot;selectiveInference&quot;</span>,<span class="st">&quot;relax&quot;</span>,<span class="st">&quot;maxt&quot;</span>,<span class="st">&quot;Bayes&quot;</span>))</span></code></pre></div>
+<pre><code>## Warning in lsfit(x, y, intercept = oo): &#39;X&#39; matrix was collinear</code></pre>
+<pre><code>## 
+## Inference for model at Step 1 of LARS procedure
+## 
+## Number of selected variables: 1
+## Partial R-squared from lasso fit: 0.316
+##   Total R-squared from lasso fit: 0.594
+## Adjusted for: covariate 
+## 
+## Results from fixed lasso inference (selective inference):
+## 
+## Standard deviation of noise (specified or estimated) sigma = 3.106
+## 
+## Testing results at lambda = 15.514, with alpha = 0.050
+## 
+##     Coef P-value CI.lo CI.up LoTailArea UpTailArea
+## x3 0.964       0 0.835 1.093      0.024      0.024
+## 
+## Results from max-|t| test:
+## 
+## Error standard deviation: 3.094 on 395 degrees of freedom
+## 
+##         Coef P-value
+## x3 0.9637339       0
+## 
+## Message regarding calculation of P-value: Normal Completion
+##  with estimated numeric absolute error: 0.000000e+00
+## 
+## Results from relaxed lasso:
+## 
+## Partial R-squared from relaxed lasso fit: 0.357
+##   Total R-squared from relaxed lasso fit: 0.618
+## 
+##         Coef         SE     CI.lo    CI.up
+## x3 0.9637339 0.06493734 0.8364591 1.091009
+## 
+## Posterior probabilities:
+##                                   
+## x1                       0.0000000
+## x2                       0.0000000
+## x3                       0.9999993
+## Accumulation(x1, x2, x3) 0.0000007
+## Change(x1, x2)           0.0000000
+## Change(x2, x3)           0.0000000
+## Change(x1, x3)           0.0000000</code></pre>
+</div>
+<div id="example-3.-covariates-and-missing-values" class="section level2">
+<h2>Example 3. Covariates and missing values</h2>
+<p>Some simulated data with missing values (code originally supplied to
+The Dunn Lab in 2016)</p>
+<div class="sourceCode" id="cb66"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a>covariate <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">250</span>)</span>
+<span id="cb66-3"><a href="#cb66-3" aria-hidden="true" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> covariate <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="dv">250</span>)</span>
+<span id="cb66-4"><a href="#cb66-4" aria-hidden="true" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> x1 <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span><span class="fu">rnorm</span>(<span class="dv">250</span>)</span>
+<span id="cb66-5"><a href="#cb66-5" aria-hidden="true" tabindex="-1"></a>x3 <span class="ot">&lt;-</span> x2 <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span><span class="fu">rnorm</span>(<span class="dv">250</span>)</span>
+<span id="cb66-6"><a href="#cb66-6" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">2</span><span class="sc">*</span>covariate <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span>(x3<span class="sc">-</span>x1) <span class="sc">+</span> <span class="dv">5</span><span class="sc">*</span><span class="fu">rnorm</span>(<span class="dv">250</span>)</span>
+<span id="cb66-7"><a href="#cb66-7" aria-hidden="true" tabindex="-1"></a>covariate[<span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">250</span>, <span class="at">size=</span><span class="dv">10</span>)] <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb66-8"><a href="#cb66-8" aria-hidden="true" tabindex="-1"></a>x1[<span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">250</span>, <span class="at">size=</span><span class="dv">10</span>)] <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb66-9"><a href="#cb66-9" aria-hidden="true" tabindex="-1"></a>x2[<span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">250</span>, <span class="at">size=</span><span class="dv">10</span>)] <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb66-10"><a href="#cb66-10" aria-hidden="true" tabindex="-1"></a>x3[<span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">250</span>, <span class="at">size=</span><span class="dv">10</span>)] <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb66-11"><a href="#cb66-11" aria-hidden="true" tabindex="-1"></a>y[<span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">250</span>, <span class="at">size=</span><span class="dv">10</span>)] <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb66-12"><a href="#cb66-12" aria-hidden="true" tabindex="-1"></a>incompleteData <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(covariate,x1,x2,x3,y)</span></code></pre></div>
+<p>Complete case analysis</p>
+<div class="sourceCode" id="cb67"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>CCslcma <span class="ot">&lt;-</span> <span class="fu">slcma</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 <span class="sc">+</span> <span class="fu">Accumulation</span>(x1,x2,x3) <span class="sc">+</span> </span>
+<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>                 <span class="fu">Change</span>(x1,x3) <span class="sc">+</span> <span class="fu">Ever</span>(x1,x2,x3) <span class="sc">+</span> covariate, incompleteData, <span class="at">adjust=</span><span class="dv">7</span>)</span></code></pre></div>
+<pre><code>##                      Term                             Role
+##               (Intercept)       Adjusted for in all models
+##                        x1 Available for variable selection
+##                        x2 Available for variable selection
+##                        x3 Available for variable selection
+##  Accumulation(x1, x2, x3) Available for variable selection
+##            Change(x1, x3) Available for variable selection
+##          Ever(x1, x2, x3) Available for variable selection
+##                 covariate       Adjusted for in all models</code></pre>
+<p>Impute missing values (5 imputated datasets to save time)</p>
+<div class="sourceCode" id="cb69"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a>imputedData <span class="ot">&lt;-</span> <span class="fu">mice</span>(incompleteData, <span class="at">m=</span><span class="dv">5</span>, <span class="at">maxit=</span><span class="dv">20</span>, <span class="at">seed=</span><span class="dv">321</span>)</span></code></pre></div>
+<pre><code>## 
+##  iter imp variable
+##   1   1  covariate  x1  x2  x3  y
+##   1   2  covariate  x1  x2  x3  y
+##   1   3  covariate  x1  x2  x3  y
+##   1   4  covariate  x1  x2  x3  y
+##   1   5  covariate  x1  x2  x3  y
+##   2   1  covariate  x1  x2  x3  y
+##   2   2  covariate  x1  x2  x3  y
+##   2   3  covariate  x1  x2  x3  y
+##   2   4  covariate  x1  x2  x3  y
+##   2   5  covariate  x1  x2  x3  y
+##   3   1  covariate  x1  x2  x3  y
+##   3   2  covariate  x1  x2  x3  y
+##   3   3  covariate  x1  x2  x3  y
+##   3   4  covariate  x1  x2  x3  y
+##   3   5  covariate  x1  x2  x3  y
+##   4   1  covariate  x1  x2  x3  y
+##   4   2  covariate  x1  x2  x3  y
+##   4   3  covariate  x1  x2  x3  y
+##   4   4  covariate  x1  x2  x3  y
+##   4   5  covariate  x1  x2  x3  y
+##   5   1  covariate  x1  x2  x3  y
+##   5   2  covariate  x1  x2  x3  y
+##   5   3  covariate  x1  x2  x3  y
+##   5   4  covariate  x1  x2  x3  y
+##   5   5  covariate  x1  x2  x3  y
+##   6   1  covariate  x1  x2  x3  y
+##   6   2  covariate  x1  x2  x3  y
+##   6   3  covariate  x1  x2  x3  y
+##   6   4  covariate  x1  x2  x3  y
+##   6   5  covariate  x1  x2  x3  y
+##   7   1  covariate  x1  x2  x3  y
+##   7   2  covariate  x1  x2  x3  y
+##   7   3  covariate  x1  x2  x3  y
+##   7   4  covariate  x1  x2  x3  y
+##   7   5  covariate  x1  x2  x3  y
+##   8   1  covariate  x1  x2  x3  y
+##   8   2  covariate  x1  x2  x3  y
+##   8   3  covariate  x1  x2  x3  y
+##   8   4  covariate  x1  x2  x3  y
+##   8   5  covariate  x1  x2  x3  y
+##   9   1  covariate  x1  x2  x3  y
+##   9   2  covariate  x1  x2  x3  y
+##   9   3  covariate  x1  x2  x3  y
+##   9   4  covariate  x1  x2  x3  y
+##   9   5  covariate  x1  x2  x3  y
+##   10   1  covariate  x1  x2  x3  y
+##   10   2  covariate  x1  x2  x3  y
+##   10   3  covariate  x1  x2  x3  y
+##   10   4  covariate  x1  x2  x3  y
+##   10   5  covariate  x1  x2  x3  y
+##   11   1  covariate  x1  x2  x3  y
+##   11   2  covariate  x1  x2  x3  y
+##   11   3  covariate  x1  x2  x3  y
+##   11   4  covariate  x1  x2  x3  y
+##   11   5  covariate  x1  x2  x3  y
+##   12   1  covariate  x1  x2  x3  y
+##   12   2  covariate  x1  x2  x3  y
+##   12   3  covariate  x1  x2  x3  y
+##   12   4  covariate  x1  x2  x3  y
+##   12   5  covariate  x1  x2  x3  y
+##   13   1  covariate  x1  x2  x3  y
+##   13   2  covariate  x1  x2  x3  y
+##   13   3  covariate  x1  x2  x3  y
+##   13   4  covariate  x1  x2  x3  y
+##   13   5  covariate  x1  x2  x3  y
+##   14   1  covariate  x1  x2  x3  y
+##   14   2  covariate  x1  x2  x3  y
+##   14   3  covariate  x1  x2  x3  y
+##   14   4  covariate  x1  x2  x3  y
+##   14   5  covariate  x1  x2  x3  y
+##   15   1  covariate  x1  x2  x3  y
+##   15   2  covariate  x1  x2  x3  y
+##   15   3  covariate  x1  x2  x3  y
+##   15   4  covariate  x1  x2  x3  y
+##   15   5  covariate  x1  x2  x3  y
+##   16   1  covariate  x1  x2  x3  y
+##   16   2  covariate  x1  x2  x3  y
+##   16   3  covariate  x1  x2  x3  y
+##   16   4  covariate  x1  x2  x3  y
+##   16   5  covariate  x1  x2  x3  y
+##   17   1  covariate  x1  x2  x3  y
+##   17   2  covariate  x1  x2  x3  y
+##   17   3  covariate  x1  x2  x3  y
+##   17   4  covariate  x1  x2  x3  y
+##   17   5  covariate  x1  x2  x3  y
+##   18   1  covariate  x1  x2  x3  y
+##   18   2  covariate  x1  x2  x3  y
+##   18   3  covariate  x1  x2  x3  y
+##   18   4  covariate  x1  x2  x3  y
+##   18   5  covariate  x1  x2  x3  y
+##   19   1  covariate  x1  x2  x3  y
+##   19   2  covariate  x1  x2  x3  y
+##   19   3  covariate  x1  x2  x3  y
+##   19   4  covariate  x1  x2  x3  y
+##   19   5  covariate  x1  x2  x3  y
+##   20   1  covariate  x1  x2  x3  y
+##   20   2  covariate  x1  x2  x3  y
+##   20   3  covariate  x1  x2  x3  y
+##   20   4  covariate  x1  x2  x3  y
+##   20   5  covariate  x1  x2  x3  y</code></pre>
+<p>Apply LARS to data with same covariance structure as pooled data
+across imputations (data created via Cholesky decomposition)</p>
+<div class="sourceCode" id="cb71"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>MIslcma <span class="ot">&lt;-</span> <span class="fu">slcma</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 <span class="sc">+</span> <span class="fu">Accumulation</span>(x1,x2,x3) <span class="sc">+</span> </span>
+<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>                 <span class="fu">Change</span>(x1,x3) <span class="sc">+</span> <span class="fu">Ever</span>(x1,x2,x3) <span class="sc">+</span> covariate, <span class="at">data=</span>imputedData, <span class="at">adjust=</span><span class="dv">7</span>)</span></code></pre></div>
+<pre><code>##                      Term                             Role
+##               (Intercept)       Adjusted for in all models
+##                        x1 Available for variable selection
+##                        x2 Available for variable selection
+##                        x3 Available for variable selection
+##          Ever(x1, x2, x3) Available for variable selection
+##                 covariate       Adjusted for in all models
+##  Accumulation(x1, x2, x3) Available for variable selection
+##            Change(x1, x3) Available for variable selection</code></pre>
+<p>Can summarize and produce plots as before</p>
+<div class="sourceCode" id="cb73"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(MIslcma) </span></code></pre></div>
+<pre><code>## 
+## Summary of LARS procedure
+##  Step Variable selected Variable removed Variables Partial R-squared
+##     0                                            0             0.000
+##     1    Change(x1, x3)                          1             0.544
+##     2                x2                          2             0.564
+##     3                x1                          3             0.565
+##     4  Ever(x1, x2, x3)                          4             0.565</code></pre>
+<div class="sourceCode" id="cb75"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(MIslcma)</span></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>Can perform inference (stage 2) as before</p>
+<div class="sourceCode" id="cb76"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a><span class="fu">slcmaInfer</span>(MIslcma,<span class="dv">1</span>, <span class="at">method=</span><span class="fu">c</span>(<span class="st">&quot;selectiveInference&quot;</span>,<span class="st">&quot;relax&quot;</span>,<span class="st">&quot;maxt&quot;</span>,<span class="st">&quot;Bayes&quot;</span>))</span></code></pre></div>
+<pre><code>## Warning in lsfit(x, y, intercept = oo): &#39;X&#39; matrix was collinear</code></pre>
+<pre><code>## 
+## Inference for model at Step 1 of LARS procedure
+## 
+## Number of selected variables: 1
+## Partial R-squared from lasso fit: 0.544
+##   Total R-squared from lasso fit: 0.570
+## Adjusted for: covariate 
+## 
+## Results from fixed lasso inference (selective inference):
+## 
+## Standard deviation of noise (specified or estimated) sigma = 5.205
+## 
+## Testing results at lambda = 15.814, with alpha = 0.050
+## 
+##                 Coef P-value CI.lo CI.up LoTailArea UpTailArea
+## Change(x1, x3) 2.027       0 1.801 2.252      0.024      0.025
+## 
+## Results from max-|t| test:
+## 
+## Error standard deviation: 5.195 on 244 degrees of freedom
+## 
+##                    Coef P-value
+## Change(x1, x3) 2.026825       0
+## 
+## Message regarding calculation of P-value: Normal Completion
+##  with estimated numeric absolute error: 0.000000e+00
+## 
+## Results from relaxed lasso:
+## 
+## Partial R-squared from relaxed lasso fit: 0.561
+##   Total R-squared from relaxed lasso fit: 0.586
+## 
+##                    Coef        SE   CI.lo   CI.up
+## Change(x1, x3) 2.026825 0.1142905 1.80282 2.25083
+## 
+## Posterior probabilities:
+##                           
+## x1                       0
+## x2                       0
+## x3                       0
+## Ever(x1, x2, x3)         0
+## Accumulation(x1, x2, x3) 0
+## Change(x1, x3)           1</code></pre>
+<p>Can recreate the dummy dataset used within the above SLCMA</p>
+<div class="sourceCode" id="cb79"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a>myMIdata <span class="ot">&lt;-</span> <span class="fu">MI2dummy</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3 <span class="sc">+</span> <span class="fu">Accumulation</span>(x1,x2,x3) <span class="sc">+</span> </span>
+<span id="cb79-2"><a href="#cb79-2" aria-hidden="true" tabindex="-1"></a>                     <span class="fu">Change</span>(x1,x3) <span class="sc">+</span> <span class="fu">Ever</span>(x1,x2,x3) <span class="sc">+</span> covariate, imputedData)</span></code></pre></div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
