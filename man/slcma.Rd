@@ -33,7 +33,7 @@ generation, if \code{data} contains multiple imputations, is reproducible (Defau
 \item{...}{Additional arguments to be passed to \code{lars}.}
 }
 \value{
-An list containing the following items:
+A list containing the following items:
 \itemize{
 \item \code{X_hypos} Numeric matrix with columns corresponding to SLCMA hypotheses.
 \item \code{y_resid} Output variable, adjusted for terms specified in \code{adjust}.
